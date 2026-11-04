@@ -1,0 +1,1 @@
+"""Adaptadores HTTP da aplicação."""
