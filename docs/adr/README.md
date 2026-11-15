@@ -27,4 +27,12 @@ O que fica mais fácil, o que fica mais difícil e o que precisa ser feito.
 
 ## Índice
 
-Nenhum ADR registrado ainda.
+| Nº | Decisão | Status |
+| --- | --- | --- |
+| [0001](0001-autenticacao-jwt-e-refresh-em-cookie.md) | Autenticação com JWT de acesso e refresh token em cookie | aceito |
+| [0002](0002-propriedade-ativa-na-rota.md) | Propriedade ativa no caminho da URL | aceito |
+| [0003](0003-status-do-registro-derivado.md) | Status do registro de estoque derivado do saldo | aceito |
+| [0004](0004-custo-alocado-gravado-e-recalculado.md) | Custo alocado gravado na venda e recalculado pelo domínio | aceito |
+| [0005](0005-enumerados-varchar-com-check.md) | Enumerados como varchar com CHECK e nomes de restrições estáveis | aceito |
+| [0006](0006-armazenamento-privado-das-fotos.md) | Armazenamento privado das fotos das notas atrás de uma interface | aceito |
+| [0007](0007-rendimento-de-carcaca-padrao.md) | Rendimento de carcaça padrão de 50%, configurável por propriedade | aceito |
