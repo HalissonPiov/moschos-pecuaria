@@ -232,7 +232,7 @@ Um pacote de trabalho só está concluído quando:
 
 ## 9. Decisões a registrar em ADR (pacote 2.1)
 
-O modelo de dados e os requisitos v2 já resolveram o vínculo usuário–propriedade (N:N com papel) e o modelo do estoque (registro com um animal por cabeça). Faltam:
+O modelo de dados e os requisitos v2 já resolveram o vínculo usuário–propriedade (N:N com papel) e o modelo do estoque (registro com um animal por cabeça). As decisões abaixo foram registradas em 15/11/2026 como ADRs 0001 a 0007, na mesma ordem (docs/adr):
 
 | # | Decisão | Recomendação | Bloqueia |
 | --- | --- | --- | --- |
