@@ -27,3 +27,7 @@ uploads/
 .idea/
 .vscode/
 .claude/
+
+# Local drafts not versioned
+db/VersoesAnteriores/
+docs/interface/
