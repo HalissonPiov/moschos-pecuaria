@@ -1,0 +1,557 @@
+// =====================================================================
+// Modelo Relacional Lógico - Sistema de Gerenciamento de Estoque e
+// Finanças de um Agronegócio (pecuária de corte)
+// CSI606 - Sistemas WEB I
+//
+// VERSÃO 2 - corrigida após a validação de 11/11/2026
+// (docs/modelo-de-dados.md). Ajustes aplicados: A1 a A6, B1 a B4 e os
+// acréscimos D1 a D7.
+// Este é o arquivo oficial do modelo; o SQL é gerado a partir dele.
+// O banco real é criado pelas migrations Alembic: este arquivo e o SQL
+// servem de referência e diagrama (nomes de índices podem diferir).
+//
+// Como abrir/editar: cole este arquivo em https://dbdiagram.io/d
+// (cria o diagrama, permite editar o texto e exportar PNG, PDF e SQL).
+//
+// Convenções: nomes em snake_case; PostgreSQL; chaves substitutas
+// inteiras; valores monetários em numeric(12,2); datas e horas de
+// registro em timestamptz; datas de negócio em date.
+// Valores enumerados ficam em varchar com CHECK (não há tipos nativos
+// ENUM): para incluir um valor novo, altere o CHECK por migration.
+// CHECKs nomeados ck_<tabela>_<regra>, com a tabela abreviada quando
+// o nome é longo (ex.: ck_registro_*, ck_movimentacao_*, ck_convite_*).
+// As referências RFxx / RNxx apontam para o Documento de Requisitos.
+// =====================================================================
+
+Project agro_estoque_financas {
+  database_type: 'PostgreSQL'
+  Note: '''
+  **Valores derivados (não armazenados, calculados por consulta ou view):**
+  - saldo de cabeças = nº de animais do registro sem venda e sem baixa (RN03)
+  - status exibido do registro (RN02): "vendido" se o saldo é zero e há venda não estornada; "parcialmente_vendido" se o saldo é maior que zero e há venda não estornada; nos demais casos, a situacao_producao decidida pelo produtor. Saldo zero sem venda (todos baixados) é exibido como "encerrado"
+  - situação do animal: em estoque = sem venda_id e sem movimentacao_baixa_id; vendido = venda_id preenchido; baixado = movimentacao_baixa_id preenchido
+  - quantidade inicial do registro = nº de animais sem movimentacao_entrada_id
+  - custo acumulado = custo_aquisicao + custo_aquisicao das entradas + custos realizados não estornados (RN16)
+  - receita = arrobas_vendidas x preco_arroba (RN19)
+  - margem bruta = receita - custo_alocado (RN20); margem líquida = margem bruta - despesas_venda (RN21)
+  - custo por arroba e ponto de equilíbrio (RN24, RN25)
+  - projeção de saídas por mês (RF19) = custos previstos + custos realizados "a pagar"
+  - sugestão de descrição/categoria por fornecedor (RF12) = último custo do mesmo fornecedor
+  - titularidade "confirmada" = existe membro com papel proprietario; caso contrário "declarada por gestor" (RN36)
+  - simulações de venda (RF28, RN29) são calculadas na hora e não são gravadas
+
+  **Garantido pelo banco (chaves e CHECKs):**
+  - o animal pertence à mesma propriedade do seu registro (chave estrangeira composta, A4)
+  - valores positivos, faixas e coerência entre colunas (ver "checks" de cada tabela, A5)
+  - valores permitidos de cada coluna enumerada (CHECK, B1)
+
+  **Integridade que fica na aplicação (com teste):**
+  - categoria, fornecedor, nota, comprador, pasto e registro usados em um custo, venda ou animal pertencem à mesma propriedade (RN31)
+  - o usuário só acessa propriedades presentes em usuario_propriedade; a propriedade ativa vem da rota /properties/{id}/ (RN31)
+  - permissões por papel: operar e convidar (proprietario e gestor); remover membros, inativar a propriedade e alterar o titular (proprietario, ou gestor se não houver proprietário vinculado) (RN37)
+  - toda propriedade mantém ao menos um membro (RN38)
+  - o token do convite é mostrado uma vez e só o hash é guardado; o convite é de uso único, expira e pode ser revogado antes do aceite (RN39)
+  - o MVP não coleta CPF/CNPJ do titular, apenas o nome (RN35)
+  - registro "individual" tem exatamente 1 animal e não recebe entradas (RN01)
+  - venda.quantidade_cabecas e movimentacao_estoque.quantidade devem ser iguais ao nº de animais ligados a elas (RN32)
+  - seleção de animais na venda/baixa: automática se nenhum animal em estoque do registro tiver dados individuais; manual caso contrário (RN32)
+  - custos ficam no registro (lote), não no animal; o custo alocado segue o custo médio por cabeça e é recalculado pelo serviço de domínio (RN17, RN33)
+  - custo realizado não pode ter data futura (RN10); custo previsto tem data futura ou a confirmar (RN11)
+  - após venda total, bloquear edição de custos e vendas, exceto correção justificada (RN05)
+  - atualizado_em é preenchido pelo ORM (não há gatilho no banco)
+  '''
+}
+
+// ---------------------------------------------------------------------
+// ACESSO
+// ---------------------------------------------------------------------
+Table propriedade {
+  id integer [pk, increment]
+  nome varchar(120) [not null]
+  municipio varchar(80)
+  uf char(2)
+  area_hectares numeric(10,2)
+  titular_nome varchar(200) [not null, note: 'nome do dono real (pode listar mais de um proprietário); sem CPF/CNPJ no MVP (RN35)']
+  cadastrada_por integer [not null, ref: > usuario.id, note: 'usuário que cadastrou a propriedade (auditoria)']
+  rendimento_carcaca_pct numeric(5,2) [not null, default: 50.00, note: 'RN18. Valor provisório, a validar com o produtor']
+  praca_padrao varchar(60) [not null, default: 'Minas Gerais', note: 'RN27']
+  dias_alerta_vencimento smallint [not null, default: 7, note: 'RN13']
+  ativa boolean [not null, default: true, note: 'inativação da propriedade (RN37), em vez de exclusão (A2)']
+  criado_em timestamptz [not null, default: `now()`]
+
+  checks {
+    `rendimento_carcaca_pct > 0 AND rendimento_carcaca_pct <= 100` [name: 'ck_propriedade_rendimento']
+    `dias_alerta_vencimento >= 0` [name: 'ck_propriedade_dias_alerta']
+  }
+
+  Note: 'Raiz do isolamento de dados (RNF05, RN31). Guarda o titular (dono real, que pode nem usar o sistema), quem cadastrou e os parâmetros configuráveis.'
+}
+
+Table usuario {
+  id integer [pk, increment]
+  nome varchar(120) [not null]
+  email varchar(160) [not null, unique]
+  senha_hash varchar(255) [not null, note: 'hash seguro (RNF04)']
+  ativo boolean [not null, default: true]
+  criado_em timestamptz [not null, default: `now()`]
+
+  Note: 'RF01. A ligação com propriedades é feita em usuario_propriedade (N:N).'
+}
+
+Table usuario_propriedade {
+  usuario_id integer [not null, ref: > usuario.id]
+  propriedade_id integer [not null, ref: > propriedade.id]
+  papel varchar(20) [not null, note: 'proprietario | gestor. Papel declarado pelo usuário nesta propriedade (RN35)']
+  aceite_declaracao_em timestamptz [not null, note: 'data do aceite do termo de declaração']
+  versao_termo varchar(20) [not null, note: 'versão do texto do termo aceito']
+  criado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (usuario_id, propriedade_id) [pk]
+    propriedade_id
+  }
+
+  checks {
+    `papel IN ('proprietario', 'gestor')` [name: 'ck_usuario_propriedade_papel']
+  }
+
+  Note: 'RF01, RF32, RF35, RN31, RN35. Um usuário pode pertencer a várias propriedades e uma propriedade pode ter vários usuários. O papel (proprietário ou gestor) fica no vínculo; um papel de desenvolvedor/administrador do sistema, no futuro, será atributo do usuário.'
+}
+
+Table convite_propriedade {
+  id integer [pk, increment]
+  propriedade_id integer [not null, ref: > propriedade.id]
+  papel varchar(20) [not null, note: 'proprietario | gestor. Papel definido por quem convida']
+  token_hash varchar(255) [not null, unique, note: 'só o hash é guardado; o link com o token é mostrado uma vez (RN39)']
+  criado_por integer [not null, ref: > usuario.id]
+  criado_em timestamptz [not null, default: `now()`]
+  expira_em timestamptz [not null]
+  aceito_em timestamptz
+  aceito_por integer [ref: > usuario.id]
+  revogado_em timestamptz [note: 'só pode ser revogado enquanto não aceito']
+
+  indexes {
+    propriedade_id
+  }
+
+  checks {
+    `papel IN ('proprietario', 'gestor')` [name: 'ck_convite_papel']
+    `expira_em > criado_em` [name: 'ck_convite_validade']
+    `NOT (aceito_em IS NOT NULL AND revogado_em IS NOT NULL)` [name: 'ck_convite_estado']
+    `(aceito_em IS NULL) = (aceito_por IS NULL)` [name: 'ck_convite_aceite']
+  }
+
+  Note: 'RF34, RF35, RN39. Convite por link de uso único, com validade.'
+}
+
+Table recuperacao_senha {
+  id integer [pk, increment]
+  usuario_id integer [not null, ref: > usuario.id]
+  token_hash varchar(255) [not null, unique, note: 'o token é buscado pelo hash (B3)']
+  expira_em timestamptz [not null]
+  usado_em timestamptz
+  criado_em timestamptz [not null, default: `now()`]
+
+  Note: 'RF02 (prioridade Baixa).'
+}
+
+// ---------------------------------------------------------------------
+// ESTOQUE
+// ---------------------------------------------------------------------
+Table registro_estoque {
+  id integer [pk, increment]
+  propriedade_id integer [not null, ref: > propriedade.id]
+  identificacao varchar(80) [not null]
+  modo_registro varchar(20) [not null, note: 'individual | lote']
+  data_formacao date [not null]
+  origem varchar(20) [not null, note: 'nascimento | aquisicao']
+  custo_aquisicao numeric(12,2) [not null, default: 0, note: 'custo de aquisição na formação (RN16)']
+  situacao_producao varchar(20) [not null, default: 'em_producao', note: 'em_producao | pronto_para_venda. Só a decisão do produtor (RN02); "parcialmente vendido" e "vendido" são derivados (A3)']
+  ativo boolean [not null, default: true, note: 'inativação em vez de exclusão (RN04)']
+  criado_em timestamptz [not null, default: `now()`]
+  atualizado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (propriedade_id, identificacao) [unique]
+    (propriedade_id, situacao_producao)
+    (id, propriedade_id) [unique, name: 'uq_registro_estoque_id_propriedade']
+  }
+
+  checks {
+    `modo_registro IN ('individual', 'lote')` [name: 'ck_registro_modo']
+    `origem IN ('nascimento', 'aquisicao')` [name: 'ck_registro_origem']
+    `situacao_producao IN ('em_producao', 'pronto_para_venda')` [name: 'ck_registro_situacao_producao']
+    `custo_aquisicao >= 0` [name: 'ck_registro_custo_aquisicao']
+  }
+
+  Note: 'RF03 a RF05. Agrupamento de animais que carrega custos, vendas e a decisão de produção. No modo individual, agrupa um único animal. A quantidade vem dos animais ligados (tabela animal). A unicidade de (id, propriedade_id) sustenta a chave estrangeira composta do animal (A4).'
+}
+
+Table pasto {
+  id integer [pk, increment]
+  propriedade_id integer [not null, ref: > propriedade.id]
+  nome varchar(80) [not null]
+  area_hectares numeric(10,2) [note: 'opcional']
+  ativo boolean [not null, default: true]
+
+  indexes {
+    (propriedade_id, nome) [unique]
+  }
+
+  Note: 'RF06. Áreas da propriedade onde os animais ficam, cadastradas pelo usuário.'
+}
+
+Table animal {
+  id integer [pk, increment]
+  registro_estoque_id integer [not null]
+  propriedade_id integer [not null, note: 'repete a propriedade do registro; a chave composta garante que coincidam (A4). Serve para filtrar e para o brinco único']
+  nome varchar(80) [note: 'opcional']
+  brinco varchar(40) [note: 'opcional; único na propriedade quando informado, inclusive entre animais já vendidos (B5)']
+  sexo varchar(10) [note: 'opcional. macho | femea']
+  raca varchar(60) [note: 'opcional; texto livre']
+  cor varchar(40) [note: 'opcional; texto livre']
+  data_nascimento date [note: 'opcional; a idade é calculada']
+  nascimento_estimado boolean [not null, default: false, note: 'true quando a data de nascimento é aproximada']
+  peso_inicial_kg numeric(10,2) [note: 'opcional; os pesos seguintes ficam em pesagem']
+  pasto_id integer [ref: > pasto.id, note: 'pasto atual']
+  observacao varchar(200)
+  movimentacao_entrada_id integer [ref: > movimentacao_estoque.id, note: 'preenchido se o animal entrou depois da formação do registro']
+  venda_id integer [ref: > venda.id, note: 'preenchido quando o animal é vendido; volta a nulo se a venda for estornada (RN34)']
+  movimentacao_baixa_id integer [ref: > movimentacao_estoque.id, note: 'preenchido quando o animal sai por morte ou descarte; volta a nulo se a baixa for estornada (RN34)']
+  criado_em timestamptz [not null, default: `now()`]
+  atualizado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    registro_estoque_id
+    (propriedade_id, brinco) [unique]
+    pasto_id
+    venda_id
+  }
+
+  checks {
+    `sexo IN ('macho', 'femea')` [name: 'ck_animal_sexo']
+    `peso_inicial_kg > 0` [name: 'ck_animal_peso_inicial']
+    `venda_id IS NULL OR movimentacao_baixa_id IS NULL` [name: 'ck_animal_saida_unica']
+  }
+
+  Note: 'RF03, RF06, RN01, RN06. Uma linha por cabeça, criada junto com o registro. Todos os dados individuais são opcionais e não entram nos cálculos.'
+}
+
+Table movimentacao_estoque {
+  id integer [pk, increment]
+  registro_estoque_id integer [not null, ref: > registro_estoque.id]
+  tipo varchar(20) [not null, note: 'entrada | baixa_morte | baixa_descarte']
+  data_movimentacao date [not null]
+  quantidade integer [not null, note: 'maior que zero']
+  custo_aquisicao numeric(12,2) [not null, default: 0, note: 'apenas para entradas']
+  observacao varchar(200)
+  estornada_em timestamptz [note: 'estorno de baixa (RN34, A1): devolve os animais ao estoque. Entrada não é estornável no MVP']
+  criado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (registro_estoque_id, data_movimentacao)
+  }
+
+  checks {
+    `tipo IN ('entrada', 'baixa_morte', 'baixa_descarte')` [name: 'ck_movimentacao_tipo']
+    `quantidade > 0` [name: 'ck_movimentacao_quantidade']
+    `custo_aquisicao >= 0` [name: 'ck_movimentacao_custo_aquisicao']
+    `tipo = 'entrada' OR custo_aquisicao = 0` [name: 'ck_movimentacao_custo_so_entrada']
+  }
+
+  Note: 'RF07. Evento que altera o saldo sem gerar receita. Entrada cria animais (animal.movimentacao_entrada_id); baixa liga os animais que saíram (animal.movimentacao_baixa_id). A venda tem tabela própria (venda).'
+}
+
+Table pesagem {
+  id integer [pk, increment]
+  animal_id integer [not null, ref: > animal.id]
+  data_pesagem date [not null]
+  peso_kg numeric(10,2) [not null]
+  observacao varchar(200)
+
+  checks {
+    `peso_kg > 0` [name: 'ck_pesagem_peso']
+  }
+
+  Note: 'RF08 (prioridade Baixa). Pesagem de cada animal; pesagem coletiva do lote não está prevista.'
+}
+
+// ---------------------------------------------------------------------
+// NOTAS FISCAIS E CUSTOS
+// ---------------------------------------------------------------------
+Table fornecedor {
+  id integer [pk, increment]
+  propriedade_id integer [not null, ref: > propriedade.id]
+  nome varchar(120) [not null]
+  ativo boolean [not null, default: true]
+
+  indexes {
+    (propriedade_id, nome) [unique]
+  }
+
+  Note: 'Base da memória de fornecedor (RF12): a sugestão vem do histórico de custos do fornecedor.'
+}
+
+Table categoria_custo {
+  id integer [pk, increment]
+  propriedade_id integer [not null, ref: > propriedade.id]
+  nome varchar(60) [not null]
+  sugerida boolean [not null, default: false, note: 'criada como sugestão inicial (RF11)']
+  ativa boolean [not null, default: true]
+
+  indexes {
+    (propriedade_id, nome) [unique]
+  }
+
+  Note: 'RF11. Categorias livres criadas pelo usuário (ex.: alimentação, sanidade, suplementos, locação).'
+}
+
+Table nota_fiscal {
+  id integer [pk, increment]
+  propriedade_id integer [not null, ref: > propriedade.id]
+  fornecedor_id integer [not null, ref: > fornecedor.id]
+  numero_documento varchar(60) [note: 'opcional']
+  data_compra date [not null]
+  valor_total numeric(12,2) [not null]
+  imagem_caminho varchar(500) [not null, note: 'caminho da foto no armazenamento privado (RNF06, RNF14); o arquivo não fica no banco']
+  imagem_mime varchar(60)
+  criado_por integer [ref: > usuario.id]
+  criado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (propriedade_id, data_compra)
+    fornecedor_id
+  }
+
+  checks {
+    `valor_total > 0` [name: 'ck_nota_valor_total']
+  }
+
+  Note: 'RF09. Nota em papel digitalizada por foto. Uma nota pode originar vários custos (RN08).'
+}
+
+Table recorrencia {
+  id integer [pk, increment]
+  registro_estoque_id integer [not null, ref: > registro_estoque.id]
+  categoria_custo_id integer [not null, ref: > categoria_custo.id]
+  fornecedor_id integer [ref: > fornecedor.id]
+  descricao varchar(200) [not null]
+  valor numeric(12,2) [not null, note: 'valor esperado das próximas ocorrências (RN14)']
+  periodicidade varchar(20) [not null, note: 'semanal | quinzenal | mensal | bimestral | trimestral | semestral | anual']
+  proxima_data date [not null, note: 'data esperada do próximo lançamento previsto']
+  ativa boolean [not null, default: true]
+  encerrada_em date
+  criado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    registro_estoque_id
+  }
+
+  checks {
+    `valor > 0` [name: 'ck_recorrencia_valor']
+    `periodicidade IN ('semanal', 'quinzenal', 'mensal', 'bimestral', 'trimestral', 'semestral', 'anual')` [name: 'ck_recorrencia_periodicidade']
+    `NOT (ativa AND encerrada_em IS NOT NULL)` [name: 'ck_recorrencia_encerramento']
+  }
+
+  Note: 'RF13, RN14. Modelo do custo recorrente; gera os custos previstos.'
+}
+
+Table custo {
+  id integer [pk, increment]
+  registro_estoque_id integer [not null, ref: > registro_estoque.id, note: 'sempre vinculado a um registro (RN07)']
+  categoria_custo_id integer [not null, ref: > categoria_custo.id]
+  nota_fiscal_id integer [ref: > nota_fiscal.id, note: 'opcional (RN09)']
+  fornecedor_id integer [ref: > fornecedor.id]
+  recorrencia_id integer [ref: > recorrencia.id, note: 'preenchido se o custo veio de uma recorrência']
+  descricao varchar(200) [not null]
+  valor numeric(12,2) [not null, note: 'maior que zero (RN07)']
+  data_compra date [not null, note: 'realizado: data da compra; previsto: data esperada']
+  natureza varchar(20) [not null, default: 'realizado', note: 'previsto | realizado. Previsto não compõe o custo acumulado (RN11); realizado compõe (RN10)']
+  situacao_pagamento varchar(20) [note: 'a_pagar | pago. Só para custo realizado (RN12)']
+  data_vencimento date [note: 'obrigatória quando a pagar (RF15, RN13)']
+  data_pagamento date
+  estornado_em timestamptz [note: 'estorno em vez de exclusão física (RF16)']
+  criado_por integer [ref: > usuario.id]
+  criado_em timestamptz [not null, default: `now()`]
+  atualizado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (registro_estoque_id, natureza)
+    nota_fiscal_id
+    (situacao_pagamento, data_vencimento)
+    (fornecedor_id, data_compra)
+  }
+
+  checks {
+    `valor > 0` [name: 'ck_custo_valor']
+    `natureza IN ('previsto', 'realizado')` [name: 'ck_custo_natureza']
+    `situacao_pagamento IN ('a_pagar', 'pago')` [name: 'ck_custo_situacao_pagamento']
+    `natureza = 'realizado' OR situacao_pagamento IS NULL` [name: 'ck_custo_pagamento_so_realizado']
+    `situacao_pagamento IS DISTINCT FROM 'a_pagar' OR data_vencimento IS NOT NULL` [name: 'ck_custo_vencimento_a_pagar']
+    `situacao_pagamento IS NOT DISTINCT FROM 'pago' OR data_pagamento IS NULL` [name: 'ck_custo_data_pagamento']
+  }
+
+  Note: 'RF10, RF14, RF15. Núcleo do custo acumulado: só custos realizados e não estornados compõem o custo do registro (RN10, RN16).'
+}
+
+// ---------------------------------------------------------------------
+// VENDAS E MARGEM
+// ---------------------------------------------------------------------
+Table comprador {
+  id integer [pk, increment]
+  propriedade_id integer [not null, ref: > propriedade.id]
+  nome varchar(120) [not null, note: 'ex.: frigorífico']
+  ativo boolean [not null, default: true]
+
+  indexes {
+    (propriedade_id, nome) [unique]
+  }
+}
+
+Table venda {
+  id integer [pk, increment]
+  registro_estoque_id integer [not null, ref: > registro_estoque.id]
+  comprador_id integer [ref: > comprador.id]
+  data_venda date [not null]
+  quantidade_cabecas integer [not null, note: 'maior que zero, não superior ao saldo (RN03) e igual ao nº de animais ligados à venda (RN32)']
+  peso_vivo_total_kg numeric(12,2) [note: 'informar este ou arrobas_carcaca_informadas']
+  arrobas_carcaca_informadas numeric(10,2) [note: 'arrobas de carcaça informadas diretamente (RF21)']
+  rendimento_carcaca_pct numeric(5,2) [note: 'rendimento aplicado quando a conversão parte do peso vivo; guarda o valor usado na época (RN18)']
+  arrobas_vendidas numeric(10,2) [not null, note: 'resultado da conversão (RN18)']
+  preco_arroba numeric(10,2) [not null]
+  despesas_venda numeric(12,2) [not null, default: 0, note: 'frete, taxas e outras (RN21)']
+  despesas_descricao varchar(200)
+  custo_alocado numeric(12,2) [not null, note: 'RN17: custo médio móvel por cabeça x cabeças vendidas; calculado e gravado pelo serviço de domínio, que recalcula as vendas do registro quando custos, vendas ou baixas mudam. A venda que zera o saldo recebe todo o custo restante']
+  observacao varchar(200)
+  estornada_em timestamptz [note: 'RF24']
+  criado_por integer [ref: > usuario.id]
+  criado_em timestamptz [not null, default: `now()`]
+  atualizado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (registro_estoque_id, data_venda)
+  }
+
+  checks {
+    `quantidade_cabecas > 0` [name: 'ck_venda_quantidade']
+    `arrobas_vendidas > 0` [name: 'ck_venda_arrobas']
+    `preco_arroba > 0` [name: 'ck_venda_preco_arroba']
+    `despesas_venda >= 0` [name: 'ck_venda_despesas']
+    `custo_alocado >= 0` [name: 'ck_venda_custo_alocado']
+    `peso_vivo_total_kg IS NOT NULL OR arrobas_carcaca_informadas IS NOT NULL` [name: 'ck_venda_origem_arrobas']
+    `rendimento_carcaca_pct > 0 AND rendimento_carcaca_pct <= 100` [name: 'ck_venda_rendimento']
+    `arrobas_carcaca_informadas IS NOT NULL OR rendimento_carcaca_pct IS NOT NULL` [name: 'ck_venda_rendimento_peso_vivo']
+  }
+
+  Note: 'RF20 a RF24. Venda total ou parcial; um registro pode ter várias vendas, para compradores diferentes. Os animais vendidos são os que apontam para a venda (animal.venda_id).'
+}
+
+Table oferta_frigorifico {
+  id integer [pk, increment]
+  registro_estoque_id integer [not null, ref: > registro_estoque.id]
+  comprador_id integer [not null, ref: > comprador.id]
+  data_oferta date [not null]
+  preco_arroba numeric(10,2) [not null]
+  quantidade_cabecas integer
+  observacao varchar(200)
+  criado_em timestamptz [not null, default: `now()`]
+
+  checks {
+    `preco_arroba > 0` [name: 'ck_oferta_preco_arroba']
+    `quantidade_cabecas > 0` [name: 'ck_oferta_quantidade']
+  }
+
+  Note: 'RF29 (prioridade Baixa), RN30. Apenas referência; não gera venda.'
+}
+
+// ---------------------------------------------------------------------
+// REFERÊNCIA DE MERCADO
+// ---------------------------------------------------------------------
+Table cotacao {
+  id integer [pk, increment]
+  propriedade_id integer [not null, ref: > propriedade.id]
+  data_cotacao date [not null]
+  praca varchar(60) [not null, note: 'ex.: Minas Gerais']
+  valor_arroba numeric(10,2) [not null]
+  fonte varchar(80) [not null]
+  criado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (propriedade_id, data_cotacao, praca, fonte) [unique, name: 'uq_cotacao_data_praca_fonte']
+    (propriedade_id, praca, data_cotacao)
+  }
+
+  checks {
+    `valor_arroba > 0` [name: 'ck_cotacao_valor_arroba']
+  }
+
+  Note: 'RF25, RN26. Cotação registrada manualmente. Se a integração automática vier no futuro, a tabela pode passar a ser compartilhada entre propriedades.'
+}
+
+// ---------------------------------------------------------------------
+// AUDITORIA
+// ---------------------------------------------------------------------
+Table correcao_justificada {
+  id integer [pk, increment]
+  propriedade_id integer [not null, ref: > propriedade.id]
+  usuario_id integer [not null, ref: > usuario.id]
+  entidade varchar(40) [not null, note: 'ex.: custo, venda, registro_estoque']
+  entidade_id integer [not null]
+  justificativa text [not null]
+  dados_anteriores jsonb [note: 'valores antes da correção']
+  criado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (entidade, entidade_id)
+  }
+
+  Note: 'RN05. Registra correções feitas após a venda total do registro.'
+}
+
+// ---------------------------------------------------------------------
+// Chave estrangeira composta (A4): o animal só pode apontar para um
+// registro da mesma propriedade. Substitui as FKs simples do animal
+// para registro_estoque e propriedade.
+// ---------------------------------------------------------------------
+Ref: animal.(registro_estoque_id, propriedade_id) > registro_estoque.(id, propriedade_id)
+
+// ---------------------------------------------------------------------
+// Grupos (organização visual no dbdiagram.io)
+// ---------------------------------------------------------------------
+TableGroup acesso {
+  propriedade
+  usuario
+  usuario_propriedade
+  convite_propriedade
+  recuperacao_senha
+}
+
+TableGroup estoque {
+  registro_estoque
+  animal
+  pasto
+  movimentacao_estoque
+  pesagem
+}
+
+TableGroup notas_e_custos {
+  fornecedor
+  categoria_custo
+  nota_fiscal
+  recorrencia
+  custo
+}
+
+TableGroup vendas_e_margem {
+  comprador
+  venda
+  oferta_frigorifico
+}
+
+TableGroup mercado {
+  cotacao
+}
+
+TableGroup auditoria {
+  correcao_justificada
+}
