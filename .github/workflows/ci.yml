@@ -13,6 +13,22 @@ jobs:
   backend:
     name: Back-end
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: moschos_test
+          POSTGRES_USER: moschos
+          POSTGRES_PASSWORD: moschos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U moschos -d moschos_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://moschos:moschos@localhost:5432/moschos_test
     defaults:
       run:
         working-directory: backend
