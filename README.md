@@ -47,6 +47,8 @@ O compose inicia PostgreSQL e API, aplicando as migrations na subida da API; dur
 
 As mesmas verificações rodam no GitHub Actions a cada push em main e develop e em pull requests.
 
+Os testes marcados com `db` usam um PostgreSQL real: o banco `moschos_test` é criado no Postgres do docker compose e recriado pela migration a cada execução (outro endereço pode ser informado em `TEST_DATABASE_URL`). Sem o banco no ar, esses testes são pulados localmente; no CI eles sempre rodam.
+
 ~~~
 cd backend && ruff check . && ruff format --check . && pytest
 cd frontend && pnpm build

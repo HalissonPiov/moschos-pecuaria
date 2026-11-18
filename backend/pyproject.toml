@@ -21,6 +21,7 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["db: usa o PostgreSQL de teste (TEST_DATABASE_URL)"]
 
 [tool.ruff]
 line-length = 100
