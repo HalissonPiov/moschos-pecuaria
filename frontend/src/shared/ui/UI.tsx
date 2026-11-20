@@ -31,8 +31,10 @@ type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
 export function Field({ label, error, suffix, id, className = "", ...props }: FieldProps) {
   const fieldId = id || props.name;
   return (
-    <label className={`field ${className}`} htmlFor={fieldId}>
-      <span className="field__label">{label}</span>
+    // O erro fica fora do <label> para não entrar no nome acessível do campo;
+    // ele é anunciado como descrição, via aria-describedby.
+    <div className={`field ${className}`}>
+      <label className="field__label" htmlFor={fieldId}>{label}</label>
       <span className={`field__control ${error ? "field__control--error" : ""}`}>
         <input id={fieldId} aria-invalid={Boolean(error)} aria-describedby={error ? `${fieldId}-error` : undefined} {...props} />
         {suffix}
@@ -42,7 +44,7 @@ export function Field({ label, error, suffix, id, className = "", ...props }: Fi
           <AlertCircle size={16} aria-hidden="true" /> {error}
         </span>
       )}
-    </label>
+    </div>
   );
 }
 
