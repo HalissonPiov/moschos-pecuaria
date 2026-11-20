@@ -51,7 +51,7 @@ Os testes marcados com `db` usam um PostgreSQL real: o banco `moschos_test` é c
 
 ~~~
 cd backend && ruff check . && ruff format --check . && pytest
-cd frontend && pnpm build
+cd frontend && pnpm test && pnpm build
 ~~~
 
 ## Fluxo de trabalho
