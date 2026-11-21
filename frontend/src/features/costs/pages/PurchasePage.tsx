@@ -570,17 +570,27 @@ function PhotoStep({ onNext, onRetake }: { onNext: () => void; onRetake: () => v
   )
 }
 
+const FUTURE_PAYMENT_ERROR = 'A data do pagamento não pode ser futura'
+
+/** Pago com data depois de hoje: o campo tem `max`, mas a digitação não respeita. */
+function futurePayment(payment: PaymentState) {
+  return payment.mode === 'paid' && Boolean(payment.paidDate) && payment.paidDate > TODAY_ISO
+}
+
 /** Pagamento: escolha + data (pago) ou vencimento (a pagar). */
 function PaymentFields({
   payment,
   purchaseDate,
   dueError,
+  paidError,
   onChange,
   label,
 }: {
   payment: PaymentState
   purchaseDate: string
   dueError?: string
+  /** Erro da data do pagamento (ex.: data futura). */
+  paidError?: string
   onChange: (payment: PaymentState) => void
   label: string
 }) {
@@ -597,6 +607,7 @@ function PaymentFields({
           type="date"
           max={TODAY_ISO}
           value={payment.paidDate || purchaseDate}
+          error={paidError}
           onChange={(event) => onChange({ ...payment, paidDate: event.target.value })}
         />
       ) : (
@@ -630,9 +641,14 @@ function NoteDataStep({
   onPredicted: () => void
 }) {
   const [dueError, setDueError] = useState('')
+  const [paidError, setPaidError] = useState('')
   const futureDate = note.date > TODAY_ISO
   function validate() {
     if (futureDate) return
+    if (futurePayment(note.payment)) {
+      setPaidError(FUTURE_PAYMENT_ERROR)
+      return
+    }
     if (note.payment.mode === 'payable' && !note.payment.dueDate) {
       setDueError('Informe o vencimento')
       return
@@ -709,9 +725,11 @@ function NoteDataStep({
           payment={note.payment}
           purchaseDate={note.date}
           dueError={dueError}
+          paidError={paidError}
           onChange={(payment) => {
             setNote({ ...note, payment })
             setDueError('')
+            setPaidError('')
           }}
         />
         <p className="field-help">
@@ -735,7 +753,10 @@ function NoteDataStep({
   )
 }
 
-type ItemErrors = Record<number, { category?: string; value?: string; split?: string; due?: string }>
+type ItemErrors = Record<
+  number,
+  { category?: string; value?: string; split?: string; due?: string; paid?: string }
+>
 
 function ItemsStep({
   note,
@@ -775,6 +796,7 @@ function ItemsStep({
       }
       if (item.payment?.mode === 'payable' && !item.payment.dueDate)
         itemErrors.due = 'Informe o vencimento'
+      if (item.payment && futurePayment(item.payment)) itemErrors.paid = FUTURE_PAYMENT_ERROR
       if (Object.keys(itemErrors).length) next[item.id] = itemErrors
     })
     setErrors(next)
@@ -1138,6 +1160,7 @@ function ItemEditor({
               payment={item.payment}
               purchaseDate={note.date}
               dueError={errors.due}
+              paidError={errors.paid}
               onChange={(payment) => onChange({ payment })}
             />
             <button type="button" className="text-link" onClick={() => onChange({ payment: null })}>

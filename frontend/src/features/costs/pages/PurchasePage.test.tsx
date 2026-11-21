@@ -64,6 +64,22 @@ describe("Registrar compra — dados da nota", () => {
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
   });
 
+  it("Pago com data de pagamento futura mostra o erro e não avança (T1)", async () => {
+    const { user } = await abrir("?origem=camera&etapa=2");
+    const pagamento = screen.getByLabelText("Data do pagamento");
+
+    fireEvent.change(pagamento, { target: { value: "2026-11-25" } });
+    await user.click(screen.getByRole("button", { name: /continuar/i }));
+
+    expect(pagamento).toHaveAccessibleDescription(/a data do pagamento não pode ser futura/i);
+    expect(screen.queryByRole("heading", { name: /itens e custos/i })).not.toBeInTheDocument();
+
+    fireEvent.change(pagamento, { target: { value: "2026-11-20" } });
+    expect(pagamento).toHaveAttribute("aria-invalid", "false");
+    await user.click(screen.getByRole("button", { name: /continuar/i }));
+    expect(await screen.findByRole("heading", { name: /itens e custos/i })).toBeInTheDocument();
+  });
+
   it("Pago pede a data do pagamento e A pagar exige o vencimento", async () => {
     const { user } = await abrir("?origem=camera&etapa=2");
 
