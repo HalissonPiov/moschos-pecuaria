@@ -4219,7 +4219,8 @@ button:disabled {
   color: var(--muted);
   font-size: 10px;
 }
-.stepper--four {
+/* .stepper.stepper--four: a regra .stepper, mais abaixo, fixa 3 colunas e venceria. */
+.stepper.stepper--four {
   grid-template-columns: repeat(4, 1fr);
 }
 .optional-animal-block,
@@ -4902,6 +4903,11 @@ button:disabled {
 }
 .record-form-heading {
   max-width: 700px;
+}
+/* O link "Voltar" ocupa a linha toda; sem isso o rótulo "Novo registro" encosta nele. */
+.record-form-heading .back-link {
+  align-items: center;
+  display: flex;
 }
 .stepper {
   display: grid;
