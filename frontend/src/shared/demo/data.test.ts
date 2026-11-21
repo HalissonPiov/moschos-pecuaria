@@ -5,7 +5,10 @@ import {
   computeSale,
   getRecord,
   propertyTotals,
+  recordEndDate,
   recordsForProperty,
+  reportPeriodRange,
+  reportRowsFor,
   round2,
   sales,
 } from "./data";
@@ -95,5 +98,39 @@ describe("dados de demonstração coerentes", () => {
     const todos = recordsForProperty("baixada", { includeInactive: true }).map((r) => r.slug);
     expect(padrao).not.toContain("lote-teste-21");
     expect(todos).toContain("lote-teste-21");
+  });
+});
+
+describe("relatórios por período", () => {
+  it("calcula o intervalo de cada período a partir de hoje (20/11/2026)", () => {
+    const iso = (date: Date | null) => date && date.toLocaleDateString("pt-BR");
+    const ano = reportPeriodRange("Este ano");
+    expect([iso(ano.from), iso(ano.to)]).toEqual(["01/01/2026", "20/11/2026"]);
+    const doze = reportPeriodRange("Últimos 12 meses");
+    expect([iso(doze.from), iso(doze.to)]).toEqual(["21/11/2025", "20/11/2026"]);
+    const passado = reportPeriodRange("Ano passado");
+    expect([iso(passado.from), iso(passado.to)]).toEqual(["01/01/2025", "31/12/2025"]);
+    expect(reportPeriodRange("Desde o início").from).toBeNull();
+  });
+
+  it("o fim do registro é a venda que zerou o saldo, a última baixa ou hoje", () => {
+    expect(recordEndDate(getRecord("lote-recria-23")!)).toBe("03/06/2026");
+    expect(recordEndDate(getRecord("lote-descarte-22")!)).toBe("14/09/2026");
+    expect(recordEndDate(getRecord("lote-safra-24")!)).toBe("20/11/2026");
+  });
+
+  it("margens consideram só as vendas do período", () => {
+    const esteAno = reportRowsFor("baixada", { type: "margens", period: "Este ano" });
+    expect(esteAno.map((row) => row.slug)).toEqual(["lote-safra-24", "lote-recria-23"]);
+    expect(esteAno[0]).toMatchObject({ netMargin: 21501.33, marginPartial: true });
+    expect(esteAno[1].marginPartial).toBe(false);
+    expect(reportRowsFor("baixada", { type: "margens", period: "Ano passado" })).toEqual([]);
+  });
+
+  it("custos consideram os registros que existiam no período e respeitam o filtro de lote", () => {
+    expect(reportRowsFor("baixada", { type: "custos", period: "Ano passado" })).toHaveLength(5);
+    expect(
+      reportRowsFor("baixada", { type: "custos", period: "Este ano", lot: "boi-047" }).map((r) => r.slug),
+    ).toEqual(["boi-047"]);
   });
 });

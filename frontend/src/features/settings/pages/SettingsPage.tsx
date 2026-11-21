@@ -46,6 +46,10 @@ import {
   money,
   parseBrDate,
   recordsForProperty,
+  REPORT_PERIODS,
+  reportRowsFor,
+  type ReportPeriod,
+  type ReportRow,
   referenceQuote,
   TODAY,
   user,
@@ -266,7 +270,7 @@ export default function SettingsPage() {
   const reportType = params.get('relatorio') === 'margens' ? 'Margens por lote' : 'Custos por lote'
   const reportLot = params.get('lote') || 'todos'
   const forcedReport = params.get('relatorio-estado') as 'vazio' | 'erro' | null
-  const [reportPeriod, setReportPeriod] = useState('Este ano')
+  const [reportPeriod, setReportPeriod] = useState<ReportPeriod>('Este ano')
   const [reportFormat, setReportFormat] = useState('CSV')
   const [reportState, setReportState] = useState<ReportState>('idle')
   const [reportFailures, setReportFailures] = useState(forcedReport === 'erro' ? 1 : 0)
@@ -274,7 +278,11 @@ export default function SettingsPage() {
   const reportRows =
     forcedReport === 'vazio'
       ? []
-      : propertyRecords.filter((record) => reportLot === 'todos' || record.slug === reportLot)
+      : reportRowsFor(id, {
+          type: reportType === 'Margens por lote' ? 'margens' : 'custos',
+          period: reportPeriod,
+          lot: reportLot,
+        })
 
   // Senha e perfil
   const [newPassword, setNewPassword] = useState('')
@@ -833,13 +841,13 @@ export default function SettingsPage() {
                     id="report-period"
                     value={reportPeriod}
                     onChange={(event) => {
-                      setReportPeriod(event.target.value)
+                      setReportPeriod(event.target.value as ReportPeriod)
                       setReportState('idle')
                     }}
                   >
-                    <option>Este ano</option>
-                    <option>Últimos 12 meses</option>
-                    <option>Desde o início</option>
+                    {REPORT_PERIODS.map((period) => (
+                      <option key={period}>{period}</option>
+                    ))}
                   </select>
                 </label>
                 <label className="select-field" htmlFor="report-lot">
@@ -875,7 +883,7 @@ export default function SettingsPage() {
                   </select>
                 </label>
               </div>
-              <ReportPreview type={reportType} state={reportState} rows={reportRows} />
+              <ReportPreview type={reportType} period={reportPeriod} state={reportState} rows={reportRows} />
               <div className="settings-actions">
                 <Button
                   icon={
@@ -1368,12 +1376,14 @@ function AlertOnce() {
 
 function ReportPreview({
   type,
+  period,
   state,
   rows,
 }: {
   type: string
+  period: ReportPeriod
   state: ReportState
-  rows: ReturnType<typeof recordsForProperty>
+  rows: ReportRow[]
 }) {
   if (state === 'generating')
     return <StateView type="loading" title="Preparando seu relatório…" text="Leva só um instante." />
@@ -1439,6 +1449,12 @@ function ReportPreview({
           ))}
         </tbody>
       </table>
+      <p className="report-preview__period">
+        {period}:{' '}
+        {costs
+          ? 'lotes e animais que estiveram na propriedade no período, com o custo acumulado até hoje.'
+          : 'margem líquida das vendas feitas no período.'}
+      </p>
       {state === 'ready' && (
         <p>
           <Check aria-hidden="true" /> Relatório pronto para baixar ({decimal(rows.length, 0)}{' '}

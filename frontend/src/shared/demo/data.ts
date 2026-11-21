@@ -758,3 +758,93 @@ export function propertyTotalsFor(propertyId: string) {
  * margem bruta R$ 64.984,57 · margem líquida R$ 61.608,57.
  */
 export const propertyTotals = propertyTotalsFor('baixada')
+
+// Relatórios por período (Configurações → Relatórios) ---------------------------
+
+export const REPORT_PERIODS = ['Este ano', 'Últimos 12 meses', 'Ano passado', 'Desde o início'] as const
+export type ReportPeriod = (typeof REPORT_PERIODS)[number]
+
+/** Intervalo do período, com as duas pontas incluídas; `from` null = sem limite. */
+export function reportPeriodRange(period: ReportPeriod, today: string = TODAY) {
+  const end = parseBrDate(today)
+  const year = end.getFullYear()
+  switch (period) {
+    case 'Este ano':
+      return { from: new Date(year, 0, 1, 0), to: end }
+    case 'Últimos 12 meses':
+      return { from: new Date(year - 1, end.getMonth(), end.getDate() + 1, 0), to: end }
+    case 'Ano passado':
+      return { from: new Date(year - 1, 0, 1, 0), to: new Date(year - 1, 11, 31, 23) }
+    case 'Desde o início':
+      return { from: null, to: end }
+  }
+}
+
+function inRange(date: string, range: ReturnType<typeof reportPeriodRange>) {
+  const value = parseBrDate(date)
+  return (!range.from || value >= range.from) && value <= range.to
+}
+
+/** Último dia do registro: a venda que zerou o saldo, a última baixa ou hoje. */
+export function recordEndDate(record: LivestockRecord) {
+  if (record.status === 'Vendido') {
+    const closing = salesForRecord(record.slug).find((sale) => sale.closesRecord)
+    if (closing) return closing.date
+  }
+  if (record.status === 'Encerrado' && record.writeOffs.length) {
+    return record.writeOffs[record.writeOffs.length - 1].date
+  }
+  return TODAY
+}
+
+export type ReportRow = {
+  slug: string
+  name: string
+  balance: number
+  original: number
+  accumulatedCost: number
+  costPerHead: number
+  /** Margem líquida das vendas do período (null sem venda no período). */
+  netMargin: number | null
+  /** Há saldo depois das vendas do período. */
+  marginPartial: boolean
+}
+
+/**
+ * Linhas da prévia do relatório.
+ * - Custos: registros que existiram em algum dia do período. Os custos de demonstração
+ *   não têm data por lançamento, então o valor é o acumulado até hoje.
+ * - Margens: registros com venda no período; a margem soma só essas vendas.
+ * TODO(integração): o mesmo filtro vira parâmetro do endpoint de relatórios (RF31, C3).
+ */
+export function reportRowsFor(
+  propertyId: string,
+  { type, period, lot = 'todos' }: { type: 'custos' | 'margens'; period: ReportPeriod; lot?: string },
+): ReportRow[] {
+  const range = reportPeriodRange(period)
+  return recordsForProperty(propertyId)
+    .filter((record) => lot === 'todos' || record.slug === lot)
+    .flatMap((record) => {
+      const periodSales = salesForRecord(record.slug).filter((sale) => inRange(sale.date, range))
+      if (type === 'margens' && periodSales.length === 0) return []
+      if (type === 'custos') {
+        const start = parseBrDate(record.formationDate)
+        const end = parseBrDate(recordEndDate(record))
+        if (start > range.to || (range.from && end < range.from)) return []
+      }
+      return [
+        {
+          slug: record.slug,
+          name: record.name,
+          balance: record.balance,
+          original: record.original,
+          accumulatedCost: record.accumulatedCost,
+          costPerHead: record.costPerHead,
+          netMargin: periodSales.length
+            ? round2(periodSales.reduce((total, sale) => total + sale.netMargin, 0))
+            : null,
+          marginPartial: periodSales.length > 0 && record.balance > 0,
+        },
+      ]
+    })
+}

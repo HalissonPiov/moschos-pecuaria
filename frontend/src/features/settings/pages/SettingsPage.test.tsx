@@ -251,3 +251,36 @@ describe("Configurações · relatórios", () => {
     expect(relatorios).toHaveTextContent("Nenhum dado neste período");
   });
 });
+
+describe("Configurações · relatórios por período (C5.10)", () => {
+  it("margens somam só as vendas do período escolhido", async () => {
+    const { user } = await abrirConfiguracoes();
+    const relatorios = secao("Relatórios");
+    await user.selectOptions(within(relatorios).getByLabelText("Tipo"), "Margens por lote");
+
+    const margens = within(relatorios).getByRole("table", { name: "Prévia do relatório margens por lote" });
+    expect(within(margens).getAllByRole("rowheader").map((linha) => linha.textContent)).toEqual([
+      "Lote Safra 24",
+      "Lote Recria 23",
+    ]);
+    expect(relatorios).toHaveTextContent("Este ano: margem líquida das vendas feitas no período.");
+
+    await user.selectOptions(within(relatorios).getByLabelText("Período"), "Ano passado");
+
+    expect(relatorios).toHaveTextContent("Nenhum dado neste período");
+    expect(within(relatorios).queryByRole("table")).not.toBeInTheDocument();
+  });
+
+  it("custos mostram os lotes que estiveram na propriedade no período", async () => {
+    const { user } = await abrirConfiguracoes();
+    const relatorios = secao("Relatórios");
+
+    await user.selectOptions(within(relatorios).getByLabelText("Período"), "Últimos 12 meses");
+
+    const previa = within(relatorios).getByRole("table", { name: "Prévia do relatório custos por lote" });
+    expect(within(previa).getAllByRole("rowheader")).toHaveLength(5);
+    expect(relatorios).toHaveTextContent(
+      "Últimos 12 meses: lotes e animais que estiveram na propriedade no período, com o custo acumulado até hoje.",
+    );
+  });
+});
