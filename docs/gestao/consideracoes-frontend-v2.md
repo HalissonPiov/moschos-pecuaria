@@ -22,8 +22,9 @@
   - os pontos de troca pela API estão marcados com `TODO(integração)`, 31 marcações em 16 arquivos.
 - **Testes.**
   - antes: 9 testes;
-  - agora: 205 testes em 18 arquivos, cobrindo as regras de cálculo (RN17, RN18 e a venda de 28/10), todas as rotas e cenários de integração por tela, tirados do checklist de validação do protótipo;
-  - os testes encontraram 2 defeitos funcionais pequenos: a data de pagamento futura aceita na compra e o aviso de troca de propriedade perdido. Eles estão anotados em `docs/interface/pendencias-pos-integracao.md`, e o segundo cabe no pacote 3.
+  - agora: 213 testes em 18 arquivos, cobrindo as regras de cálculo (RN17, RN18 e a venda de 28/10), todas as rotas e cenários de integração por tela, tirados do checklist de validação do protótipo;
+  - os testes encontraram 2 defeitos funcionais pequenos: a data de pagamento futura aceita na compra e o aviso de troca de propriedade perdido. Os dois foram corrigidos em 21/11, junto com dois textos e três ajustes de interface achados na conferência. O registro está em `docs/interface/pendencias-pos-integracao.md`.
+- **Critérios do checklist.** Os três parciais (C1.9, C5.10 e C6.2) foram resolvidos em 21/11. O checklist do protótipo fica com 86 de 86 critérios atendidos.
 
 ## 2. Impacto no pacote 3 — Acesso e propriedade
 
@@ -41,14 +42,18 @@ A parte de front-end do pacote 3 (2 h na semana 2) deixa de ser "fazer a tela" e
 
 **Recomendação.** Criar no início do pacote 3 o arquivo `frontend/src/shared/config/recursos.ts`, com uma chave por função adiada (M1 a M7), como já recomendado nas divergências. Assim, ocultar a confirmação de e-mail e a logo é uma linha, e religar depois também.
 
-**Critério parcial ligado ao pacote 3.** O termo deve abrir como folha inferior no celular (C1.9). A correção está descrita em `docs/interface/pendencias-pos-integracao.md` e cabe dentro do pacote 3, porque mexe no mesmo cadastro.
+**Pendências de interface do pacote 3.**
+
+- O termo como folha inferior no celular (C1.9) já está resolvido. O cadastro chega ao pacote 3 sem pendência de tela.
+- Fica aberto um ponto de acessibilidade: o Resumo de uma propriedade sem lotes, logo depois do cadastro, não tem `h1` (T9 em `docs/interface/pendencias-pos-integracao.md`). Cabe no pacote 3, que integra essa tela.
 
 ## 3. Impacto nos demais pacotes
 
 - **Pacotes 4, 5, 7, 8 e 9.** As telas do núcleo estão prontas e mais completas que as do V1. O trabalho de front-end continua sendo a integração, mas há mais estados ligados a cada tela (vazio, erro, validação, confirmação). A estimativa de horas continua a mesma; a revisão do M2 dirá se o fator de velocidade muda.
 - **Ampliação e Complementos.** A1 a A14 e C1 a C3 já têm tela. A parte de front-end desses itens passa a ser só integração. Isso pode reduzir a estimativa da fila (escopo.md, seção 5.4), mas a redução só deve entrar na fila depois de medida no primeiro item integrado. Não convém descontar de antemão.
 - **Pacote 10.1 (dados de demonstração).** O script de seed deve reproduzir os números de `shared/demo` (Fazenda da Baixada, Lote Safra 24, venda de 28/10, cotação de R$ 318,00). Assim, a apresentação mostra o que foi validado no protótipo, e os testes de integração podem passar a usar os mesmos valores vindos da API.
-- **Pacote 10.2 (aceitação).** O roteiro manual do fluxo completo (C6.2) é a primeira passada do roteiro de aceitação e pode ser reaproveitado.
+- **Pacote 10.2 (aceitação).** O fluxo completo (C6.2) foi percorrido em 21/11, em 390 px e 1280 px. A tabela de passos em `docs/interface/pendencias-pos-integracao.md` é a primeira passada do roteiro de aceitação e pode ser reaproveitada com dados reais.
+- **Complemento C3 (relatórios).** O filtro de período já funciona na prévia (C5.10). Na integração, o período vira parâmetro do endpoint, e os custos passam a ser somados por data de lançamento.
 
 ## 4. Impacto nos testes e na Definição de Pronto
 
@@ -72,7 +77,7 @@ A parte de front-end do pacote 3 (2 h na semana 2) deixa de ser "fazer a tela" e
 - **Divergências fora do Git.** O escopo (controle de mudanças de 19/11) cita `docs/divergencias-prototipo-modelo.md`, que está no `.gitignore`. Quem clonar o repositório não encontra o arquivo. Há duas saídas:
   - versionar o arquivo, retirando a linha do `.gitignore`;
   - copiar para o escopo a tabela M1 a M7 e P1 a P7.
-- **Critérios parciais.** Os três itens (C1.9, C5.10 e C6.2) estão descritos em `docs/interface/pendencias-pos-integracao.md`, com onde mexer e quando estão prontos. Esse arquivo fica fora do Git, como o restante de `docs/interface/`.
+- **Critérios parciais.** Os três itens (C1.9, C5.10 e C6.2) foram resolvidos em 21/11. O registro de cada correção está em `docs/interface/pendencias-pos-integracao.md`. Esse arquivo fica fora do Git, como o restante de `docs/interface/`.
 
 ## 7. Linhas sugeridas para os documentos de gestão
 
@@ -80,7 +85,7 @@ A parte de front-end do pacote 3 (2 h na semana 2) deixa de ser "fazer a tela" e
 
 | Data | Mudança | Impacto | Decisão | Observação |
 | --- | --- | --- | --- | --- |
-| 21/11/2026 | Telas do front-end substituídas pelo protótipo V2 (etapas 0 a 6 do prompt de ajustes), mantendo a estrutura Vite, o cliente de API e o CI; testes de integração por tela | Sem horas novas no núcleo; o front-end dos pacotes passa a ser integração de tela pronta | A aprovar | Funções M1 a M7 continuam ocultas na integração; C1.9 entra no pacote 3, C6.2 no 10.2 e C5.10 no C3 |
+| 21/11/2026 | Telas do front-end substituídas pelo protótipo V2 (etapas 0 a 6 do prompt de ajustes), mantendo a estrutura Vite, o cliente de API e o CI; testes de integração por tela | Sem horas novas no núcleo; o front-end dos pacotes passa a ser integração de tela pronta | A aprovar | Funções M1 a M7 continuam ocultas na integração; os critérios parciais C1.9, C5.10 e C6.2 já foram resolvidos (checklist com 86 de 86) |
 
 **cronograma.md, seção 7 (riscos):** acrescentar R10 a R13 da seção 5 deste documento.
 
