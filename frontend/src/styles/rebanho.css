@@ -1,0 +1,555 @@
+/*
+ * Etapa 6 — ajustes de Rebanho, detalhe do lote, animais, movimentações e pastos.
+ * Carregado depois de index.css (main.tsx). Regras específicas das páginas desta área;
+ * regras globais/compartilhadas ficam em index.css.
+ */
+
+/* ---- Listas semânticas (ul/ol) com o mesmo visual das antigas divs ---- */
+.recent-list,
+.timeline,
+.stepper,
+.attachment-list,
+.rb-pasture-list,
+.rb-doc-list,
+.rb-offer-compare {
+  list-style: none;
+  padding-left: 0;
+}
+.recent-list > li {
+  align-items: center;
+  border-top: 1px dashed var(--line);
+  display: grid;
+  gap: 13px;
+  grid-template-columns: auto 1fr auto;
+  min-height: 68px;
+}
+.recent-list > li > span {
+  align-items: center;
+  background: var(--green-soft);
+  border-radius: 10px;
+  color: var(--green-dark);
+  display: flex;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+.recent-list p small,
+.recent-list time {
+  font-size: 12px;
+}
+.recent-list p strong {
+  font-size: 14px;
+}
+.timeline {
+  margin-left: 95px;
+}
+.timeline > li {
+  align-items: center;
+  border-left: 2px solid var(--green-soft);
+  display: grid;
+  gap: 13px;
+  grid-template-columns: 44px 1fr;
+  min-height: 85px;
+  padding-left: 28px;
+  position: relative;
+}
+.timeline > li > span {
+  align-items: center;
+  background: var(--green-soft);
+  border: 4px solid var(--paper);
+  border-radius: 50%;
+  color: var(--green-dark);
+  display: flex;
+  height: 44px;
+  justify-content: center;
+  left: -23px;
+  position: absolute;
+  width: 44px;
+}
+.timeline > li > span svg {
+  width: 17px;
+}
+.timeline > li.is-reversed {
+  opacity: 0.6;
+}
+.timeline time,
+.timeline p small {
+  font-size: 12px;
+}
+.timeline p strong {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 14px;
+  gap: 8px;
+}
+@media (max-width: 760px) {
+  .timeline {
+    margin-left: 0;
+  }
+  .timeline time {
+    display: block;
+    left: auto;
+    margin-bottom: 4px;
+    position: static;
+    width: auto;
+  }
+  .timeline > li {
+    grid-template-columns: 1fr;
+    padding: 12px 0 12px 32px;
+  }
+}
+.stepper > li {
+  align-items: center;
+  border-top: 2px solid #d4cfc3;
+  color: var(--muted);
+  display: flex;
+  font-size: 12px;
+  gap: 8px;
+  padding-top: 11px;
+}
+.stepper > li.active {
+  border-color: var(--green);
+  color: var(--green-dark);
+}
+.attachment-list > li {
+  align-items: center;
+  background: var(--cream);
+  border-radius: 12px;
+  display: flex;
+  gap: 12px;
+  min-height: 60px;
+  padding: 7px 9px 7px 14px;
+}
+.attachment-list > li > svg {
+  color: var(--green-dark);
+}
+
+/* ---- Selos e textos de apoio ---- */
+.rb-muted-line,
+.rb-empty-line {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 8px 0;
+}
+.rb-subtitle {
+  font-family: var(--font-title);
+  font-size: 18px;
+  margin: 22px 0 10px;
+}
+.rb-inactive-tag,
+.rb-sale-badge,
+.rb-history-badge,
+.rb-reversed-badge {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  gap: 5px;
+  padding: 4px 9px;
+  width: fit-content;
+}
+.rb-inactive-tag {
+  background: #ebe8e1;
+  color: #4d4c58;
+}
+.rb-sale-badge {
+  background: var(--green-soft);
+  color: var(--green-dark);
+}
+.rb-history-badge--pulado {
+  background: #f6ead2;
+  color: #6f4a08;
+}
+.rb-history-badge--estornada,
+.rb-reversed-badge {
+  background: #ebe8e1;
+  color: #4d4c58;
+}
+.rb-history-badge--correção {
+  background: #e6e5ef;
+  color: var(--navy);
+}
+.rb-inactive-tag svg,
+.rb-sale-badge svg,
+.rb-history-badge svg,
+.rb-reversed-badge svg {
+  height: 14px;
+  width: 14px;
+}
+.rb-inactive-card {
+  opacity: 0.72;
+}
+.rb-negative strong {
+  color: #f0b5a8;
+}
+.lot-panel-grid .rb-negative strong {
+  color: var(--danger);
+}
+.rb-lock-note {
+  align-items: center;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+}
+.rb-lock-note > svg {
+  color: var(--green-dark);
+  flex: 0 0 auto;
+}
+.rb-lock-note p {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  font-size: 13px;
+  gap: 3px;
+  min-width: 200px;
+}
+.rb-lock-note span {
+  color: var(--muted);
+}
+.rb-situation {
+  align-items: center;
+  display: inline-flex;
+  gap: 5px;
+}
+.rb-situation svg {
+  height: 14px;
+  width: 14px;
+}
+.rb-situation--sold {
+  background: #e6e5ef !important;
+  color: var(--navy) !important;
+}
+.rb-situation--out {
+  background: #ebe8e1 !important;
+  color: #4d4c58 !important;
+}
+.rb-author {
+  color: var(--muted);
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  margin-top: 3px;
+}
+.rb-danger-link {
+  color: var(--danger) !important;
+}
+
+/* ---- Menu "Mais opções" ---- */
+.rb-menu {
+  position: relative;
+}
+.rb-menu__list {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  min-width: 210px;
+  padding: 6px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+}
+.rb-menu__list button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--navy);
+  display: flex;
+  font-size: 14px;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 12px;
+  text-align: left;
+}
+.rb-menu__list button:hover {
+  background: var(--cream);
+}
+.rb-menu__list svg {
+  height: 17px;
+  width: 17px;
+}
+
+/* ---- Custos por categoria ---- */
+.rb-category-table {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.rb-category-table > div {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr auto auto;
+  min-height: 52px;
+  padding: 8px 14px;
+}
+.rb-category-table > div:not(:last-child) {
+  border-bottom: 1px dashed var(--line);
+}
+.rb-category-table span {
+  font-size: 14px;
+}
+.rb-category-table small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.rb-category-table b {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.rb-category-table .rb-total {
+  background: var(--cream);
+  font-weight: 700;
+}
+.cost-table__head {
+  font-size: 12px;
+}
+.cost-table__row svg {
+  color: var(--green-dark);
+}
+
+/* ---- Documentos ---- */
+.rb-doc-list {
+  display: flex;
+  flex-basis: 100%;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+.rb-doc-list li {
+  align-items: center;
+  background: var(--cream);
+  border-radius: 10px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 20px 1fr;
+  min-height: 48px;
+  padding: 8px 12px;
+}
+.rb-doc-list svg {
+  color: var(--green-dark);
+  width: 18px;
+}
+.rb-doc-list span {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+.rb-doc-list small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.free-characteristics > span {
+  font-size: 12px;
+}
+.free-characteristics .rb-muted-line,
+.record-documents .rb-muted-line {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+/* ---- Ofertas no lote ---- */
+.rb-offer-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0 0;
+}
+.rb-offer-compare li {
+  align-items: center;
+  display: flex;
+  font-size: 13px;
+  gap: 6px;
+}
+.rb-offer-compare li svg {
+  height: 16px;
+  width: 16px;
+}
+.rb-offer-compare .gain {
+  color: var(--green-dark);
+}
+.rb-offer-compare .loss {
+  color: var(--danger);
+}
+.rb-offer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---- Pastos ---- */
+.rb-pasture-list {
+  margin: 0;
+}
+.rb-pasture-list > li {
+  align-items: center;
+  border-top: 1px dashed var(--line);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 38px 1fr auto;
+  min-height: 67px;
+  padding: 6px 0;
+}
+.rb-pasture-list > li.is-inactive {
+  opacity: 0.7;
+}
+.rb-pasture-list > li > span {
+  align-items: center;
+  background: var(--green-soft);
+  border-radius: 9px;
+  color: var(--green-dark);
+  display: flex;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+.rb-pasture-list p strong {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.rb-pasture-list small,
+.pasture-sheet__intro p,
+.pasture-list small {
+  font-size: 12px;
+}
+.rb-pasture-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: flex-end;
+}
+.rb-pasture-actions button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--green-dark);
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 5px;
+  min-height: 48px;
+  padding: 0 10px;
+}
+.rb-pasture-actions button svg {
+  height: 16px;
+  width: 16px;
+}
+@media (max-width: 560px) {
+  .rb-pasture-list > li {
+    grid-template-columns: 38px 1fr;
+  }
+  .rb-pasture-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
+/* ---- Alvos de toque (≥ 48 px) e fontes mínimas (≥ 12 px) ---- */
+.view-toggle button {
+  height: 48px;
+  width: 48px;
+}
+.search-box button {
+  height: 48px;
+  width: 48px;
+}
+.filter-chip .chip-checkbox,
+.animal-table input,
+.exit-selector input,
+.approximate-check input {
+  height: 22px;
+  width: 22px;
+}
+.animal-table article > label {
+  min-height: 48px;
+  min-width: 48px;
+}
+.animal-identity small,
+.animal-table article > span,
+.animal-table__head,
+.movement-list small,
+.movement-list em,
+.movement-list button,
+.weighing-list,
+.exit-selector small,
+.automatic-selection small,
+.record-documents button small,
+.lot-numbers small,
+.lot-numbers span,
+.herd-actions button {
+  font-size: 12px;
+}
+.movement-list button {
+  min-height: 48px;
+  padding: 0 8px;
+}
+.movement-list > div {
+  grid-template-columns: 42px 1fr 50px minmax(120px, auto);
+}
+.movement-list em {
+  align-items: center;
+  display: inline-flex;
+  gap: 4px;
+}
+.rb-reversed-toggle {
+  margin: 0 0 12px;
+}
+.exit-selector {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.exit-selector label {
+  min-height: 48px;
+}
+.selection-ok {
+  align-items: center;
+  display: inline-flex;
+  gap: 4px;
+}
+.selection-ok svg {
+  height: 14px;
+  width: 14px;
+}
+.lot-tab-content:focus-visible {
+  outline: 3px solid var(--green);
+  outline-offset: 4px;
+}
+@media (max-width: 760px) {
+  .movement-list > div {
+    grid-template-columns: 42px 1fr auto;
+  }
+  .movement-list > div > em,
+  .movement-list > div > button {
+    grid-column: 2 / -1;
+  }
+}
+
+/* Quatro números do lote lado a lado no desktop, dois por linha no mobile. */
+.lot-numbers {
+  grid-template-columns: repeat(4, 1fr);
+}
+@media (max-width: 760px) {
+  .lot-numbers {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .lot-numbers > div:nth-child(2) {
+    border-right: 0;
+  }
+}

@@ -1,0 +1,482 @@
+/*
+ * Etapa 6 — ajustes de Custos, registrar compra, previstos, A pagar e projeção.
+ * Carregado depois de index.css (main.tsx). Regras específicas das páginas desta área;
+ * regras globais/compartilhadas ficam em index.css.
+ */
+
+/* ---- Fonte mínima de 12 px nas telas de custos e compra ---------------- */
+.costs-page small,
+.purchase-page small,
+.costs-page .category-chip,
+.costs-page .entry-destination,
+.costs-page .entry-row time,
+.costs-page .cost-summary span,
+.costs-page .pending-actions .button,
+.costs-page .projection-column strong,
+.costs-page .projection-column small,
+.costs-page .category-manager small,
+.purchase-page .category-choice button,
+.purchase-page .review-posting span,
+.purchase-page .review-posting strong,
+.purchase-page .integration-note,
+.purchase-page .bill-section--disabled b,
+.purchase-page .split-box label,
+.entry-detail small,
+.receipt-detail small {
+  font-size: 12px;
+}
+
+/* ---- Situação de pagamento: ícone + texto (cor nunca sozinha) ----------- */
+.payment-badge {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 800;
+  gap: 5px;
+  justify-self: start;
+  line-height: 1.2;
+  padding: 6px 10px;
+  text-align: left;
+  white-space: nowrap;
+}
+.payment-badge svg {
+  flex: 0 0 auto;
+  height: 14px;
+  width: 14px;
+}
+.payment-badge--payable {
+  background: #f5e4c6;
+  color: #74500e;
+}
+.payment-badge--paid {
+  background: var(--green-soft);
+  color: var(--green-dark);
+}
+/* Vermelho terroso, com ícone de alerta. */
+.payment-badge--overdue {
+  background: #f6dcd5;
+  color: #8f3322;
+}
+.payment-badge--reversed {
+  background: #ecebe6;
+  color: #55545f;
+}
+.entry-row--payment {
+  grid-template-columns: 55px 38px minmax(150px, 1.4fr) 110px minmax(110px, 1fr) 170px 110px 18px;
+}
+.entry-row.is-reversed .entry-main strong,
+.entry-row.is-reversed b {
+  color: #55545f;
+  text-decoration: line-through;
+}
+.entry-detail__value {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ---- Filtros de Lançamentos -------------------------------------------- */
+.costs-filters {
+  flex-wrap: wrap;
+}
+.costs-filters .filter-chip,
+.costs-filters > button {
+  font-size: 12px;
+  min-height: 48px;
+}
+.costs-filters .filter-chip select {
+  font-size: 12px;
+  min-height: 44px;
+}
+.costs-filters > button svg {
+  height: 15px;
+  width: 15px;
+}
+.cost-toolbar .text-link {
+  font-size: 13px;
+  min-height: 48px;
+}
+.cost-order select {
+  min-height: 44px;
+}
+
+/* ---- Notas ------------------------------------------------------------- */
+.receipt-linked {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+}
+.receipt-detail .modal__actions {
+  flex-wrap: wrap;
+}
+.receipt-detail .modal__actions label.button {
+  cursor: pointer;
+}
+
+/* ---- A confirmar: selos com ícone, ações de 48 px ---------------------- */
+.pending-badge {
+  align-items: center;
+  background: var(--green-soft);
+  border-radius: 999px;
+  color: var(--green-dark);
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 800;
+  gap: 4px;
+  padding: 4px 8px;
+  text-align: center;
+}
+.pending-badge svg {
+  height: 14px;
+  width: 14px;
+}
+.pending-badge--skipped,
+.pending-badge--muted {
+  background: #ecebe6;
+  color: #55545f;
+}
+.pending-date {
+  min-width: 96px;
+}
+.pending-date > span {
+  font-size: 12px;
+}
+.pending-card.is-history {
+  background: #f7f5f0;
+  border-style: dashed;
+}
+.pending-actions {
+  flex-wrap: wrap;
+}
+.pending-actions .button {
+  font-size: 12px;
+  min-height: 48px;
+}
+.pending-actions > button:not(.button) {
+  font-size: 12px;
+  min-height: 48px;
+  padding: 0 8px;
+}
+.pending-actions > button:not(.button) svg {
+  height: 16px;
+  width: 16px;
+}
+.pending-list .list-toolbar {
+  justify-content: flex-start;
+}
+
+/* ---- Escolha Pago / A pagar -------------------------------------------- */
+.payment-choice-group {
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+.payment-choice-group legend {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.payment-choice-group > div {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+.payment-choice-group label {
+  align-items: center;
+  background: var(--paper);
+  border: 1px solid #c9c4ba;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  font-size: 15px;
+  font-weight: 800;
+  gap: 8px;
+  min-height: 56px;
+  padding: 0 14px;
+}
+.payment-choice-group label.active {
+  background: var(--green-soft);
+  border: 2px solid var(--green);
+  color: var(--green-dark);
+}
+.payment-choice-group input {
+  accent-color: var(--green-dark);
+  height: 18px;
+  width: 18px;
+}
+.payment-choice-group label:focus-within {
+  outline: 3px solid var(--navy);
+  outline-offset: 2px;
+}
+.payment-choice-group svg {
+  height: 18px;
+  width: 18px;
+}
+.payment-note {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.payment-note__copy {
+  align-items: flex-start;
+  color: var(--green-dark);
+  display: flex;
+  font-size: 13px;
+  gap: 8px;
+  line-height: 1.45;
+  margin: 0;
+}
+.payment-note__copy svg {
+  flex: 0 0 auto;
+  height: 16px;
+  width: 16px;
+}
+
+/* ---- Registrar compra: itens ------------------------------------------ */
+.category-choice {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.category-choice legend {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.new-category-inline {
+  align-items: flex-end;
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+.new-category-inline .field {
+  flex: 1;
+}
+.split-box {
+  margin-top: 0;
+}
+.split-row {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(140px, 1fr) 130px auto;
+  padding: 4px 0;
+}
+.split-row label {
+  font-size: 13px;
+  min-height: 48px;
+}
+.split-row > span {
+  font-size: 13px;
+  font-weight: 700;
+}
+.item-payment {
+  border-top: 1px dashed var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+}
+.item-payment p {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 13px;
+  gap: 8px 14px;
+  margin: 0;
+}
+.item-payment .text-link,
+.item-editor .text-link {
+  align-self: flex-start;
+  font-size: 13px;
+  min-height: 48px;
+}
+.recurring-fields {
+  flex-wrap: wrap;
+}
+.recurring-fields .field-help {
+  flex-basis: 100%;
+}
+
+/* ---- Revisão ----------------------------------------------------------- */
+.review-posting {
+  grid-template-columns: 1.4fr repeat(5, 1fr);
+}
+.review-posting__title strong {
+  font-size: 13px;
+}
+
+/* ---- Faixas de conexão instável e rascunho ---------------------------- */
+.offline-banner,
+.upload-error,
+.draft-banner {
+  flex-wrap: wrap;
+}
+.offline-banner strong,
+.upload-error strong,
+.draft-banner strong {
+  font-size: 14px;
+}
+
+/* ---- A pagar ----------------------------------------------------------- */
+.payable-note {
+  align-items: center;
+  color: var(--green-dark);
+  display: flex;
+  font-size: 14px;
+  font-weight: 700;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+.payable-note svg {
+  height: 18px;
+  width: 18px;
+}
+.payable-groups h2 small {
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  margin-left: 6px;
+}
+.payable-groups p {
+  align-items: flex-start;
+}
+.payable-groups .payment-badge {
+  margin-top: 4px;
+}
+.payable-empty {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+  padding: 14px 18px;
+}
+
+/* ---- Projeção: colunas conforme 3 / 6 / 12 meses ---------------------- */
+.projection-chart {
+  gap: 10px;
+}
+.projection-chart--12 {
+  gap: 4px;
+  padding: 10px 6px 0;
+}
+.projection-column small {
+  text-align: center;
+}
+.projection-chart--12 .projection-column small {
+  font-size: 12px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+.projection-legend span {
+  font-size: 13px;
+}
+.projection-groups .recurring-list > div:not(.detail-panel__heading) {
+  grid-template-columns: 38px 1fr auto;
+}
+
+/* ---- Categorias -------------------------------------------------------- */
+.category-manager > div,
+.category-manager > div:has(.button) {
+  grid-template-columns: 35px 1fr auto auto;
+}
+.category-manager > div.is-inactive {
+  background: #f7f5f0;
+}
+.suggested-badge {
+  font-size: 12px;
+}
+.color-picker {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.color-picker legend {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.color-picker .category-color {
+  align-items: center;
+  color: white;
+  display: inline-flex;
+  height: 48px;
+  justify-content: center;
+  width: 48px;
+}
+.color-picker .category-color.active {
+  outline: 3px solid var(--navy);
+  outline-offset: 3px;
+}
+.color-picker .category-color svg {
+  height: 20px;
+  width: 20px;
+}
+
+@media (max-width: 760px) {
+  .entry-row--payment {
+    grid-template-columns: 37px 1fr auto;
+  }
+  .payment-choice-group > div {
+    grid-template-columns: 1fr;
+  }
+  .split-row {
+    grid-template-columns: 1fr;
+  }
+  .review-posting {
+    grid-template-columns: 1fr 1fr;
+  }
+  .review-posting__title {
+    grid-column: 1 / -1;
+  }
+  .category-manager > div,
+  .category-manager > div:has(.button) {
+    grid-template-columns: 35px 1fr;
+  }
+  .category-manager > div .button {
+    grid-column: span 1;
+  }
+  .projection-chart--6 .projection-column small,
+  .projection-chart--12 .projection-column small {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+}
+
+/* ---- Auditoria final: selo "Previsto" não sobrepõe data e categoria ----- */
+.pending-card {
+  grid-template-columns: 116px 1fr auto;
+}
+.pending-date {
+  min-width: 0;
+  gap: 4px;
+}
+@media (max-width: 760px) {
+  .pending-card {
+    grid-template-columns: 1fr;
+  }
+  .pending-date {
+    align-items: center;
+    border-bottom: 1px dashed var(--line);
+    border-right: 0;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: flex-start;
+    min-height: 0;
+    padding-bottom: 10px;
+  }
+  .pending-date strong {
+    margin-top: 0;
+  }
+  .pending-value {
+    grid-column: 1;
+  }
+}
