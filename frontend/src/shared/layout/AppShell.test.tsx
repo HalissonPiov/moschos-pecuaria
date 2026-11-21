@@ -49,6 +49,9 @@ describe("estrutura do app", () => {
     await user.click(seletor.getByRole("button", { name: /fazenda cedro alto/i }));
 
     expect(pathname()).toBe("/fazenda/cedro-alto/resumo");
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Agora você está na Fazenda Cedro Alto.",
+    );
   });
 
   it("Sair volta para a tela de acesso", async () => {

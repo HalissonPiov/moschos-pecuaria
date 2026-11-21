@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router'
 import {
   BarChart3,
   Beef,
@@ -51,7 +51,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const navigate = useNavigate()
+  const location = useLocation()
   const { base, property, id } = useActiveProperty()
+  // O aviso da troca vai no state da rota: cada página monta o próprio AppShell, então
+  // um setToast antes de navegar se perderia na remontagem.
+  const switchedTo = (location.state as { switchedTo?: string } | null)?.switchedTo
   const sidebarSwitchRef = useRef<HTMLDivElement>(null)
   const mobileSwitchRef = useRef<HTMLDivElement>(null)
   const accountRef = useRef<HTMLDivElement>(null)
@@ -73,9 +77,16 @@ export default function AppShell({ children }: { children: ReactNode }) {
     setSwitchOpen(null)
     if (!next || nextId === id) return
     // Outra propriedade não tem os mesmos lotes/abas abertos: entra no Resumo dela.
-    navigate(`/fazenda/${nextId}/resumo`)
-    setToast(`Agora você está na ${next.name}.`)
+    navigate(`/fazenda/${nextId}/resumo`, { state: { switchedTo: next.name } })
   }
+
+  useEffect(() => {
+    if (!switchedTo) return
+    setToast(`Agora você está na ${switchedTo}.`)
+    // Limpa o state para o aviso não voltar ao recarregar ou voltar no histórico.
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: null })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [switchedTo])
 
   function logout() {
     navigate('/entrar?saiu=1')
