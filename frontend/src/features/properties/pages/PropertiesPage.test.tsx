@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderRoute } from "@/test/renderRoute";
 
@@ -162,6 +162,35 @@ describe("cadastro de propriedade", () => {
     termo = await screen.findByRole("dialog", { name: "Termo de declaração do gestor" });
     expect(within(termo).getByText(/versão 1\.0/i)).toBeInTheDocument();
     expect(within(termo).getByText(/faz a gestão com a permissão do titular/i)).toBeInTheDocument();
+  });
+
+  it("no celular o termo abre como folha; Esc fecha só o termo e o foco volta ao link (C1.9)", async () => {
+    const original = window.matchMedia;
+    window.matchMedia = ((query: string) => ({
+      ...original(query),
+      matches: query.includes("max-width: 760px"),
+    })) as typeof window.matchMedia;
+    try {
+      const { user } = renderRoute("/propriedades?cadastro=1&passo=3");
+      const cadastro = await screen.findByRole("dialog", { name: "Cadastrar propriedade" });
+      const link = within(cadastro).getByRole("button", { name: "Termo de declaração" });
+
+      await user.click(link);
+      expect(
+        await screen.findByRole("dialog", { name: "Termo de declaração do proprietário" }),
+      ).toHaveAttribute("aria-modal", "true");
+
+      await user.keyboard("{Escape}");
+      await waitFor(() =>
+        expect(
+          screen.queryByRole("dialog", { name: "Termo de declaração do proprietário" }),
+        ).not.toBeInTheDocument(),
+      );
+      expect(screen.getByRole("dialog", { name: "Cadastrar propriedade" })).toBeInTheDocument();
+      expect(link).toHaveFocus();
+    } finally {
+      window.matchMedia = original;
+    }
   });
 
   it("enviar sem aceitar o termo pede o aceite", async () => {

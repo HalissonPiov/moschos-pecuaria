@@ -212,6 +212,15 @@ export function StateView({
   )
 }
 
+/**
+ * Diálogos abertos, do mais antigo ao mais recente. Só o do topo responde ao Esc e ao Tab:
+ * com o termo aberto sobre o cadastro, o Esc fecha só o termo.
+ */
+const openModals: symbol[] = []
+
+/** Largura em que o diálogo vira folha inferior (mesmo corte do CSS em index.css). */
+const SHEET_QUERY = '(max-width: 760px)'
+
 export function Modal({
   open,
   onClose,
@@ -228,9 +237,13 @@ export function Modal({
   const restoreFocusRef = useRef<HTMLElement | null>(null)
   const onCloseRef = useRef(onClose)
   onCloseRef.current = onClose
+  // No celular o diálogo é uma folha presa ao rodapé (CSS) e entra de baixo para cima.
+  const sheet = typeof window !== 'undefined' && Boolean(window.matchMedia?.(SHEET_QUERY).matches)
 
   useEffect(() => {
     if (!open) return
+    const token = Symbol('modal')
+    openModals.push(token)
     restoreFocusRef.current = document.activeElement as HTMLElement
     const dialog = dialogRef.current
     const focusable = dialog?.querySelector<HTMLElement>(
@@ -238,6 +251,7 @@ export function Modal({
     )
     focusable?.focus()
     function handleKeydown(event: KeyboardEvent) {
+      if (openModals[openModals.length - 1] !== token) return
       if (event.key === 'Escape') {
         event.stopPropagation()
         onCloseRef.current()
@@ -264,6 +278,7 @@ export function Modal({
     document.addEventListener('keydown', handleKeydown)
     return () => {
       document.removeEventListener('keydown', handleKeydown)
+      openModals.splice(openModals.indexOf(token), 1)
       restoreFocusRef.current?.focus()
     }
   }, [open])
@@ -284,10 +299,10 @@ export function Modal({
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
-            initial={{ opacity: 0, y: 24, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16 }}
-            transition={{ duration: 0.22 }}
+            initial={sheet ? { y: '100%' } : { opacity: 0, y: 24, scale: 0.98 }}
+            animate={sheet ? { y: 0 } : { opacity: 1, y: 0, scale: 1 }}
+            exit={sheet ? { y: '100%' } : { opacity: 0, y: 16 }}
+            transition={{ duration: sheet ? 0.28 : 0.22, ease: 'easeOut' }}
             onMouseDown={(event) => event.stopPropagation()}
           >
             <div className="modal__header">
