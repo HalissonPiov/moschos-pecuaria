@@ -66,6 +66,13 @@ function initialWeighings(animal: LotAnimal): Weighing[] {
 }
 
 /** Brincos em uso fora deste lote (inclui animal vendido). */
+/** "o animal #02" → "pelo animal #02"; "um animal …" → "por um animal …". */
+function byOwner(owner: string) {
+  if (owner.startsWith('o ')) return `pelo ${owner.slice(2)}`
+  if (owner.startsWith('a ')) return `pela ${owner.slice(2)}`
+  return `por ${owner}`
+}
+
 const otherTags = [
   { tag: '0047', owner: 'o Boi 047' },
   { tag: '0231', owner: 'um animal vendido do Lote Recria 23' },
@@ -536,7 +543,7 @@ function AnimalDetail({
         ? `o animal ${animals.find((other) => other.id !== animal.id && normalizeTag(other.tag) === normalized)!.order}`
         : otherTags.find((other) => normalizeTag(other.tag) === normalized)?.owner)
     : undefined
-  const tagError = tagOwner ? `Brinco ${tag.trim()} já está em uso por ${tagOwner}.` : undefined
+  const tagError = tagOwner ? `Brinco ${tag.trim()} já está em uso ${byOwner(tagOwner)}.` : undefined
   const birthError = birthDate && birthDate > TODAY_ISO ? 'A data de nascimento não pode ser futura.' : undefined
   const age = ageFrom(birthDate)
   const current = items.length ? items[items.length - 1].weight : animal.initialWeight

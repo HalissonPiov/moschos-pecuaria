@@ -80,7 +80,7 @@ describe("Detalhe do lote: números e cotação", () => {
 
     await user.click(screen.getByRole("button", { name: "Voltar para em produção" }));
 
-    expect(await screen.findByText("Lote voltou para em produção.")).toBeInTheDocument();
+    expect(await screen.findByText("Animal voltou para em produção.")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Marcar como pronto para venda" }),
     ).toBeInTheDocument();
@@ -225,11 +225,11 @@ describe("Detalhe do lote: aba Animais", () => {
     await user.clear(brinco);
     await user.type(brinco, "471");
 
-    expect(brinco).toHaveAccessibleDescription(/brinco 471 já está em uso por o animal #02/i);
+    expect(brinco).toHaveAccessibleDescription(/brinco 471 já está em uso pelo animal #02/i);
 
     await user.clear(brinco);
     await user.type(brinco, "0047");
-    expect(brinco).toHaveAccessibleDescription(/já está em uso por o boi 047/i);
+    expect(brinco).toHaveAccessibleDescription(/já está em uso pelo boi 047/i);
   });
 
   it("animal vendido abre somente leitura", async () => {

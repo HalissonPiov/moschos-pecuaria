@@ -38,9 +38,12 @@ export function StatusBadge({ status }: { status: RecordStatus }) {
 
 export function StatusAction({
   status,
+  kind = 'Lote',
   onChange,
 }: {
   status: RecordStatus
+  /** Define o sujeito do aviso: "Lote …" ou "Animal …". */
+  kind?: 'Lote' | 'Individual'
   /** Sem onChange, o componente guarda o status localmente e avisa com um toast. */
   onChange?: (next: RecordStatus) => void
 }) {
@@ -65,8 +68,8 @@ export function StatusAction({
           else setLocalStatus(next)
           setToast(
             next === 'Pronto para venda'
-              ? 'Lote marcado como pronto para venda.'
-              : 'Lote voltou para em produção.',
+              ? `${kind === 'Individual' ? 'Animal marcado' : 'Lote marcado'} como pronto para venda.`
+              : `${kind === 'Individual' ? 'Animal voltou' : 'Lote voltou'} para em produção.`,
           )
         }}
       >

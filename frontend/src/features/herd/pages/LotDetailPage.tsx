@@ -383,7 +383,7 @@ export default function LotDetailPage() {
           </div>
         </header>
         <div className="lot-status-row">
-          <StatusAction key={record.slug} status={record.status} />
+          <StatusAction key={record.slug} status={record.status} kind={record.kind} />
         </div>
         {record.balance > 0 ? (
           <QuoteComparison record={record} breakEvenLabel="Ponto de equilíbrio do saldo" />
