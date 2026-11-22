@@ -1,6 +1,12 @@
-import { RouterProvider } from "react-router";
-import { router } from "./app/routes";
+import { RouterProvider } from 'react-router'
+import { MotionConfig } from 'motion/react'
+import { router } from '@/app/routes'
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  // reducedMotion="user": as animações do Motion respeitam prefers-reduced-motion.
+  return (
+    <MotionConfig reducedMotion="user">
+      <RouterProvider router={router} />
+    </MotionConfig>
+  )
 }

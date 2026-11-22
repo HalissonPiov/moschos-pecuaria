@@ -1,0 +1,274 @@
+/*
+ * Etapa 6 — ajustes de Vendas, simulador, ofertas, painel financeiro e resumo.
+ * Carregado depois de index.css (main.tsx). Regras específicas das páginas desta área;
+ * regras globais/compartilhadas ficam em index.css.
+ */
+
+/* ---- Fonte mínima de 12 px em Vendas, Registrar venda, Painel e Resumo ---- */
+.sales-page small,
+.sales-page em,
+.financial-page small,
+.dashboard small,
+.sale-register-panel small,
+.sale-register-panel em,
+.sale-detail small,
+.sales-list-head,
+.sales-list--detailed .sale-list-row > span,
+.sale-list-row b,
+.sale-list-row small,
+.sales-summary span,
+.detail-sale-heading small,
+.sale-number-grid span,
+.sale-number-grid strong,
+.sold-animals p,
+.sale-mode button,
+.fee-total,
+.sale-live-card > p,
+.sale-result-list span,
+.sale-result-list span em,
+.sale-result-list strong,
+.source-tag,
+.offer-disclaimer span,
+.offer-disclaimer small,
+.simulation-seal,
+.offer-card header small,
+.offer-card > p,
+.offer-comparisons span,
+.sim-section__heading p,
+.quote-input-row .button,
+.sim-section > .button,
+.simulation-primary small,
+.simulation-primary span,
+.simulation-numbers span,
+.simulation-numbers strong,
+.quote-slider > span,
+.quote-slider > small,
+.margin-label,
+.margin-label b,
+.lot-selector span,
+.lot-selector small,
+.financial-kpis span,
+.financial-kpis small,
+.finance-panel__heading p,
+.finance-donut small,
+.composition-list span,
+.composition-list small,
+.composition-list b,
+.balance-panel > p,
+.balance-panel > div:last-child,
+.balance-weight-card p,
+.chart-labels,
+.chart-months,
+.margin-total span,
+.margin-total small,
+.sale-margin-row div,
+.sale-margin-row small,
+.sale-margin-row b,
+.forecast-row span,
+.forecast-row strong,
+.status-segment span,
+.due-soon-list p,
+.due-soon-list small,
+.due-soon-list .button,
+.market-pill em,
+.metric > small,
+.expense-row time,
+.expense-row div span,
+.donut span,
+.donut-layout li,
+.chart-legend,
+.chart-y,
+.chart-x,
+.quote-comparison > div > span,
+.inline-shortcut {
+  font-size: 12px;
+}
+
+/* ---- Alvos de toque ≥ 48 px -------------------------------------------- */
+.due-soon-list .button,
+.fee-lines button,
+.fee-lines input,
+.sale-result-list button,
+.sales-toolbar .filter-chip,
+.sales-toolbar .text-link,
+.sale-margin-row,
+.composition-list > button {
+  min-height: 48px;
+}
+.fee-lines button,
+.sale-result-list button {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  min-width: 48px;
+}
+.due-soon-list .button {
+  padding: 0 14px;
+}
+
+/* ---- Despesas da venda: rótulos visíveis ------------------------------- */
+fieldset.fee-editor {
+  border: 0;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+fieldset.fee-editor > legend {
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 6px;
+  padding: 0;
+}
+.fee-lines label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fee-lines__label {
+  color: var(--muted, #5b6157);
+  font-size: 12px;
+  font-weight: 700;
+}
+.fee-lines > div {
+  align-items: end;
+  flex-wrap: wrap;
+}
+.fee-lines .field__error {
+  flex-basis: 100%;
+}
+
+/* ---- Dicas e erros dos formulários ------------------------------------- */
+.field-hint {
+  align-items: center;
+  color: var(--muted, #5b6157);
+  display: flex;
+  font-size: 12px;
+  gap: 6px;
+  margin: -4px 0 4px;
+}
+.field-hint svg {
+  flex: 0 0 auto;
+  height: 14px;
+  width: 14px;
+}
+.live-equation small {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+.register-error {
+  align-items: flex-start;
+  background: #fbe9e4;
+  border: 1px solid var(--danger);
+  border-radius: 10px;
+  color: var(--danger);
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+}
+.register-error span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.register-error small {
+  color: #6e2a1d;
+  font-size: 12px;
+}
+.register-error svg {
+  flex: 0 0 auto;
+  height: 18px;
+  width: 18px;
+}
+
+/* ---- Vendas registradas ------------------------------------------------- */
+.sale-reversed-tag {
+  align-items: center;
+  background: #efe9df;
+  border-radius: 999px;
+  color: #5d4a2c;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 800;
+  gap: 4px;
+  margin-left: 6px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.sale-reversed-tag svg {
+  height: 13px;
+  width: 13px;
+}
+.sale-list-row .negative {
+  color: var(--danger);
+}
+.aggregate-margin small {
+  flex-basis: 100%;
+}
+.sales-toolbar .filter-chip span {
+  white-space: nowrap;
+}
+
+/* ---- Ofertas: comparação neutra ---------------------------------------- */
+.offer-comparisons .even {
+  color: #5d4a2c;
+}
+.offer-comparisons svg {
+  flex: 0 0 auto;
+}
+
+/* ---- Painel financeiro ------------------------------------------------- */
+.financial-status {
+  margin: -6px 0 12px;
+}
+.financial-note {
+  align-items: center;
+  color: var(--muted, #5b6157);
+  display: flex;
+  font-size: 13px;
+  gap: 8px;
+  margin: 8px 0;
+}
+.financial-note svg {
+  flex: 0 0 auto;
+  height: 18px;
+  width: 18px;
+}
+button.sale-margin-row {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+}
+.forecast-row i b {
+  min-width: 4px;
+}
+
+/* ---- Resumo -------------------------------------------------------------- */
+.status-segment .status-badge {
+  font-size: 12px;
+}
+.lot-cost-list .cost-alert {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+}
+.lot-cost-list .cost-alert svg,
+.due-soon-list .overdue strong svg {
+  height: 16px;
+  margin-right: 4px;
+  vertical-align: -3px;
+  width: 16px;
+}
+.due-soon-list .overdue strong {
+  color: var(--danger);
+}
+.dashboard-note {
+  color: var(--muted, #5b6157);
+  font-size: 13px;
+  margin: 8px 0;
+}

@@ -7,7 +7,7 @@
 | Responsável | Hálisson Piovezana (gestão e desenvolvimento) |
 | Base | Documento-Requisitos-Moschos-Pecuaria.md, versão revisada 2 (fonte oficial dos requisitos) |
 | Modelo de dados | db/ e a validação em docs/modelo-de-dados.md |
-| Versão deste documento | 2.1 — 15/11/2026 (a 2.0, de 11/11, seguia os requisitos v2; a 1.0, de 08/11, a versão anterior) |
+| Versão deste documento | 2.3 — 21/11/2026 (a 2.2, de 19/11, registrou as divergências do protótipo; a 2.1, de 15/11, incorporou o modelo de dados v2; a 2.0, de 11/11, seguia os requisitos v2; a 1.0, de 08/11, a versão anterior) |
 | Cronograma associado | cronograma.md |
 
 ## 1. Objetivo
@@ -44,7 +44,7 @@ O núcleo atende os objetivos OE1, OE2, OE3, OE6, OE7 e OE9. A Ampliação compl
 | Restrição | Stack definida: React/TypeScript/Vite, FastAPI, PostgreSQL, SQLAlchemy/Alembic, Docker, pytest e Vitest (RNF12, RNF13, RNF15). |
 | Premissa | As horas planejadas são só as do responsável. O documento de requisitos também lista Emerson Ataíde como integrante. Se ele contribuir, os itens da Ampliação que não dependem uns dos outros podem andar em paralelo (seção 5.3). |
 | Premissa | As estimativas consideram desenvolvimento com apoio de assistente de código. A velocidade real é medida no marco M2 (cronograma, seção 7). |
-| Premissa | O protótipo navegável já cobre o layout. O trabalho no front-end é integrar as telas à API e incluir as telas novas (propriedade, declaração e animais). |
+| Premissa | As telas do protótipo V2 já estão em frontend/, inclusive as da Ampliação e dos Complementos. O trabalho no front-end de cada pacote é ligar a tela à API e manter oculto o que pertence a pacotes ainda não integrados (seção 5.5). |
 | Premissa | A apresentação roda localmente com docker compose e dados de demonstração. Deploy em nuvem com HTTPS é um Complemento. |
 | Premissa | O rendimento de carcaça padrão usa **50%**, o valor do modelo de dados, até ser validado com o produtor (RN18). |
 | Premissa | As fotos ficam em armazenamento local privado, servido pela API autenticada, atrás de uma interface de storage (RNF14). |
@@ -132,7 +132,7 @@ Cada pacote vira uma branch `feature/` e um PR para a develop.
 | 2.1 | Decisões de arquitetura | ADRs das decisões da seção 9 | RNF13, RNF14 | 1 h |
 | 2.2 | Modelo e migration inicial | Ajustes do modelo (docs/modelo-de-dados.md), modelos SQLAlchemy, migration aplicada e categorias iniciais | RN07, RN16, RN31 | 4 h |
 | 2.3 | Testes de front-end | Vitest e Testing Library configurados, um teste de exemplo e etapa no CI | RNF15 | 1 h |
-| **3** | **Acesso e propriedade** | Cadastro, login, logout, cadastro de propriedade com declaração, propriedade ativa e isolamento testado | RF01, RF02 (logout), RF32, RF33, RN31, RN35, RN36, RNF04, RNF05 | **5 h** |
+| **3** | **Acesso e propriedade** | Cadastro, login, logout, cadastro de propriedade com declaração, propriedade ativa, rotas protegidas, chaves de recursos (seção 5.5) e isolamento testado | RF01, RF02 (logout), RF32, RF33, RN31, RN35, RN36, RNF04, RNF05 | **5 h** |
 | **4** | **Rebanho** | Registro com criação dos animais, listagem com saldo, detalhe com animais, edição, inativação e status | RF03, RF04, RF05, RN01–RN04, RN06 | **5 h** |
 | **5** | **Custos** | Categorias, lançamento, edição, estorno com bloqueio, custo acumulado por categoria e tela integrada | RF10, RF11, RF16, RF18, RN05 (bloqueio), RN07–RN10, RN16 | **4,5 h** |
 | **6** | **Nota fiscal com foto** | Interface de storage, upload e download autenticados, compressão no navegador e foto no lançamento | RF09, RN08, RN09, RNF06, RNF07, RNF14 | **3,5 h** |
@@ -154,7 +154,7 @@ A ordem combina valor para o produtor e dependências. Um item só começa quand
 | Fila | Pacote | Requisitos | Estimativa | Por que nesta posição |
 | --- | --- | --- | --- | --- |
 | A1 | Editar e estornar vendas | RF24, RN34 (venda) | 2 h | Fecha a correção de erros no fluxo principal |
-| A2 | Situação de pagamento e alertas | RF15, RN12, RN13 | 2 h | Completa o painel (vencimentos) |
+| A2 | Situação de pagamento, alertas e parâmetros | RF15, RN12, RN13, RN18, RN27 | 2,5 h | Completa o painel (vencimentos). Inclui a edição dos parâmetros da propriedade (dias de aviso, rendimento e praça); até lá valem os padrões do banco |
 | A3 | Dados individuais, edição em massa, pastos e seleção manual | RF06, RN32 (manual) | 3,5 h | Dá sentido ao animal por cabeça |
 | A4 | Entradas e baixas | RF07, RN32, RN34 (baixa) | 2,5 h | Depende de A3 para a seleção de animais |
 | A5 | Convites e membros | RF34, RF35, RF36, RN37–RN39 | 5 h | Independente; a demonstração pode usar o script de seed |
@@ -167,7 +167,7 @@ A ordem combina valor para o produtor e dependências. Um item só começa quand
 | A12 | Sugestão pelo fornecedor | RF12, RN15 | 1 h | — |
 | A13 | Correção justificada | RN05 | 2 h | O bloqueio já existe no núcleo |
 | A14 | Resiliência de rede | RNF10 | 1,5 h | — |
-| | **Total da Ampliação** | | **30,5 h** | |
+| | **Total da Ampliação** | | **31 h** | |
 
 ### 5.3 Complementos
 
@@ -182,13 +182,46 @@ A ordem combina valor para o produtor e dependências. Um item só começa quand
 
 ### 5.4 Leitura honesta dos números
 
-O produto completo soma cerca de **83 h**: 40 h de núcleo, 30,5 h de Ampliação e 12,5 h de Complementos. A capacidade planejada é de 43,5 h. Para implementar tudo até 07/12, é preciso uma destas três coisas, ou uma combinação delas:
+O produto completo soma cerca de **84 h**: 40,25 h de núcleo, 31 h de Ampliação e 12,5 h de Complementos. A capacidade planejada é de 43,5 h. Para implementar tudo até 07/12, é preciso uma destas três coisas, ou uma combinação delas:
 
 - uma velocidade real perto do dobro da estimada;
 - cerca de 20 h por semana em vez de 12,5 h;
 - a participação de um segundo desenvolvedor. A5, A9 a A12 e C1 a C3 são independentes entre si e podem ser feitos em paralelo.
 
 O plano não aposta nisso: ele garante o núcleo e puxa a Ampliação conforme a velocidade medida. Na revisão do M2 (22/11) já dá para saber quanto da fila cabe.
+
+### 5.5 Telas do front-end V2 por pacote
+
+Desde 21/11 o front-end tem as telas do protótipo V2 (docs/gestao/consideracoes-frontend-v2.md). Elas já mostram funções da Ampliação e dos Complementos. Integrar uma tela do núcleo não liga essas funções.
+
+A regra de integração é:
+
+- cada parte de tela pertence a um pacote e só aparece quando os dados dela vêm da API;
+- até lá, a parte fica oculta por uma chave em `frontend/src/shared/config/recursos.ts`, criado no pacote 3, junto com as chaves M1 a M7 das divergências;
+- uma parte oculta nunca mostra dados de demonstração;
+- filtros e ordenações feitos no navegador sobre dados já vindos da API podem ficar visíveis.
+
+| Tela | Integrada no núcleo (pacote) | Oculta até |
+| --- | --- | --- |
+| Entrar e Criar conta | Login, cadastro e "Sair" (3). O cadastro segue direto para "Minhas propriedades". | Confirmação de e-mail: M1. "Esqueci minha senha": C4. |
+| Minhas propriedades e cadastro | Lista, cadastro com declaração e termo, e seletor de propriedade ativa (3) | Logo e capa: M2. "Mostrar inativas": A5. |
+| Convite | — | A5 |
+| Resumo | Cabeças, lotes por status, custos do mês, custo acumulado, margem, custo por categoria e comparativo com a cotação (9) | Vencimentos e "Marcar como pago": A2. Previstos e "A confirmar": A6. Evolução do custo mensal: sem requisito. |
+| Rebanho, novo registro e edição | Lista com saldo e filtros por status e modo; registro com criação dos animais; edição e inativação (4) | Pastos e filtro por pasto: A3. |
+| Detalhe do lote | Visão geral e lista de animais (4); Custos (5); Vendas e Painel (7) | Edição dos animais: A3. Movimentações e Histórico: A4. Correção justificada: A13. Características, documentos e anotações: M3 a M5. |
+| Custos | Lançamentos e Categorias (5); Notas (6) | A pagar: A2. A confirmar e "Lançar previsto": A6. Recorrência: A7. Projeção: A8. Filtros por período, fornecedor, pagamento e destino: A9. Cor da categoria: M6. |
+| Registrar compra | Nota com foto e lançamentos (5 e 6) | Sugestão pelo fornecedor: A12. Rascunho: A14. |
+| Vendas | Registrar venda e lista de vendas (7) | Editar e estornar: A1. Simulador: A10. Ofertas: C2. |
+| Mercado | Registrar cotação e cotação de referência (8) | Gráfico de cotações: A11. O mapa continua visível, marcado como ilustrativo. |
+| Configurações | "Sair" (3); propriedade ativa com titular e termo (3); categorias em Cadastros (5) | Parâmetros: A2. Pastos: A3. Membros, convites, inativar propriedade e alterar titular: A5. Relatórios: C3. Telefone: M7. |
+
+**Funções do V2 sem requisito.** São elas:
+
+- troca de senha;
+- cadastros de fornecedores e de compradores, com renomear, inativar e excluir;
+- evolução do custo mensal no painel.
+
+O fornecedor e o comprador continuam sendo escolhidos ou criados no próprio lançamento e na venda. As três funções ficam ocultas na v1.0 e só entram pelo controle de mudanças (seção 8).
 
 ## 6. Critério de aceitação do núcleo
 
@@ -215,6 +248,7 @@ Um pacote de trabalho só está concluído quando:
 - o endpoint usa a dependência de propriedade ativa e tem teste de acesso negado;
 - a migration, quando houver, foi gerada, aplicada e o .dbml foi atualizado junto;
 - a tela consome a API pelo adaptador da feature, sem dados fixos, e tem teste de componente quando há lógica de tela (RNF15);
+- as partes da tela de pacotes ainda não integrados estão ocultas por `shared/config/recursos.ts`, e o que a tela deixou de usar em `shared/demo` foi apagado (seção 5.5);
 - o CI está verde no PR, o PR foi integrado à develop e a lista de commits foi aprovada antes;
 - o funcionamento foi conferido na largura de celular.
 
@@ -229,6 +263,8 @@ Um pacote de trabalho só está concluído quando:
 | --- | --- | --- | --- | --- |
 | 11/11/2026 | Documento de requisitos v2: animal por cabeça (RF03, RN01, RN06, RN32–RN34), papéis e convites (RF32–RF36, RN35–RN39), renumeração de RF20 a RF31 e Vitest no RNF15 | Núcleo de 40,25 h; Ampliação de 30,5 h | Aceita | Escopo e cronograma reescritos (versão 2.0). Recuperação de senha, recorrência, previstos e pesagens deixam de ser "Won't" e entram na fila. |
 | 15/11/2026 | Modelo de dados versão 2 (docs/modelo-de-dados.md): ajustes A1–A6 e B1–B4, 40 CHECKs (acréscimos D1–D7) e status exibido "Encerrado" para registro com saldo zero sem venda (todos os animais baixados), além dos quatro status da RN02 | Absorvida no pacote 2.2 (4 h) | Aceita | Sem mudança de horas. A RN02 ganha um quinto status exibido, apenas derivado; o banco não muda. |
+| 19/11/2026 | Protótipo ajustado aos requisitos v2 (etapas 0 a 6 do prompt de ajustes). Funções sem suporte no modelo v2: confirmação de e-mail, logo e capa da propriedade, características livres, documentos e anotações do lote, cor da categoria e telefone do usuário (docs/divergencias-prototipo-modelo.md, M1 a M7) | Sem horas no núcleo | Aceita com adiamento | O modelo v2 não muda até a v1.0. M1 a M7 ficam ocultos na integração e são reavaliados após 07/12; P1 a P7 são integrados com solução provisória, sem mudar o banco. |
+| 21/11/2026 | Telas do front-end substituídas pelo protótipo V2 (branch feature/frontend-v2), mantendo o projeto Vite, o cliente de API, a configuração e o CI, com 213 testes de tela (docs/gestao/consideracoes-frontend-v2.md) | Sem horas novas no núcleo; edição dos parâmetros da propriedade (RN13, RN18, RN27), que não tinha pacote, entra em A2 (+0,5 h) | Aceita | O front-end de cada pacote passa a ser integração de tela pronta. As partes de pacotes ainda não integrados e as funções sem requisito ficam ocultas (seção 5.5). Nenhuma redução de estimativa antes de medir o primeiro item integrado. |
 
 ## 9. Decisões a registrar em ADR (pacote 2.1)
 

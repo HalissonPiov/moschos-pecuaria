@@ -43,7 +43,8 @@ moschos-pecuaria/
 │   └── src/
 │       ├── app/                       # bootstrap e rotas
 │       ├── features/                  # auth, properties, herd, costs, sales...
-│       └── shared/                    # api, config, layout e ui
+│       ├── shared/                    # api, config, demo, layout, routing e ui
+│       └── styles/                    # estilos por área (acesso, rebanho, custos, vendas)
 ├── backend/
 │   ├── app/
 │   │   ├── api/v1/endpoints/          # controllers HTTP
@@ -63,23 +64,27 @@ As pastas de domínio no back-end foram criadas para identity, properties, herd,
 
 ## Tratamento do protótipo
 
-O protótipo foi preservado e transferido de Prototipo Navegável Mo$chos para frontend.
+O protótipo do Figma Make passou por duas versões. A primeira foi transferida de Prototipo Navegável Mo$chos para frontend. Em 21/11/2026, as telas foram substituídas pelo protótipo V2, ajustado aos requisitos v2 e ao modelo de dados (etapas 0 a 6 do prompt de ajustes da interface). A estrutura do projeto Vite, o cliente de API, a configuração, os testes e o CI foram mantidos.
 
-| Conteúdo original | Destino |
+| Conteúdo do V2 (src/legacy) | Destino em frontend/src |
 | --- | --- |
-| Login | features/auth/pages |
-| Propriedades | features/properties/pages |
-| Painel | features/dashboard/pages |
-| Rebanho e lote | features/herd/pages |
-| Custos e compra | features/costs/pages |
-| Vendas, mercado, finanças e configurações | features do respectivo domínio |
-| UI.tsx | shared/ui |
-| AppShell.tsx | shared/layout |
-| public/assets | preservado em frontend/public/assets |
+| pages/LoginPage | features/auth/pages |
+| pages/PropertiesPage, pages/InvitePage, components/PropertyRegistration | features/properties |
+| pages/DashboardPage | features/dashboard/pages |
+| pages/HerdPage, AnimalFormPage, LotDetailPage; components/LotAnimals, LotMovements, PastureSheet | features/herd |
+| pages/CostsPage, PurchasePage; components/PredictedCostModal | features/costs |
+| pages/FinancialPage, SalesPage, MarketPage, SettingsPage | features do respectivo domínio |
+| components/UI, components/BusinessRules | shared/ui |
+| components/AppShell | shared/layout |
+| app/navigation (propriedade ativa pela rota) | shared/routing |
+| app/data, livestock, corrections, demo-backend, backend-data | shared/demo |
+| legacy.css e os estilos da etapa 6 | index.css e styles/ |
 
-A infraestrutura específica do Figma Make (pasta .figma, plugins do vite.config.ts, AGENTS.md, regras de Git LFS e o formatador oxfmt) foi removida. O front-end é um projeto Vite comum, sem dependência da plataforma de prototipação.
+A infraestrutura do Figma Make não entrou no projeto: Next.js, Payload CMS, a pasta .figma, AGENTS.md, regras de Git LFS e o formatador oxfmt. O `next/image` virou `<img>`, e os tipos que vinham do Payload estão em shared/demo/types.ts. As versões das dependências do front-end continuam as do projeto.
 
-Os valores das telas continuam sendo dados de demonstração para preservar a navegação do protótipo. Para integrar uma tela, a feature deve declarar contratos em shared/api/contracts, implementar seu adaptador em features/nome-do-dominio/api e usar shared/api/client. Páginas e componentes não devem chamar fetch diretamente.
+Os valores das telas continuam sendo dados de demonstração, todos em shared/demo, para preservar a navegação. O app/integration-notes.ts diz onde está cada dado fictício, e os pontos de troca estão marcados com `TODO(integração)` nas telas. Para integrar uma tela, a feature deve declarar contratos em shared/api/contracts, implementar seu adaptador em features/nome-do-dominio/api e usar shared/api/client. Páginas e componentes não devem chamar fetch diretamente. Ao integrar, a leitura de shared/demo é trocada pela resposta da API, e o que sobrar de shared/demo é apagado.
+
+As funções do protótipo que o modelo de dados v2 não sustenta (M1 a M7, por exemplo a confirmação de e-mail e a logo da propriedade) ficam ocultas na integração, conforme o controle de mudanças do escopo.
 
 ## Fronteira HTTP
 
