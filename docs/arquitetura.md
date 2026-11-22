@@ -1,6 +1,6 @@
 # Arquitetura do Mo$chos Pecuária
 
-Data da decisão: 25 de outubro de 2026. Revisado em 11 de novembro de 2026 para a versão revisada 2 dos requisitos e em 15 de novembro de 2026 para a versão 2 do modelo de dados. O escopo está definido no documento de requisitos do repositório, e o modelo de dados, em db/ (validação em docs/modelo-de-dados.md).
+Data da decisão: 25 de outubro de 2026. Revisado em 11 de novembro de 2026 para a versão revisada 2 dos requisitos e em 15 de novembro de 2026 para a versão 2 do modelo de dados. O escopo está definido no documento de requisitos do repositório, e o modelo de dados, em db/ (validação em docs/db/modelo-de-dados.md).
 
 ## Decisão
 

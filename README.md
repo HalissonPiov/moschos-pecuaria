@@ -2,7 +2,7 @@
 
 Sistema web para controle de rebanho, custos diretos, vendas e apoio à decisão de venda.
 
-Leia docs/arquitetura.md para entender a estrutura e as decisões adotadas. Os requisitos de negócio estão no arquivo Documento-Requisitos-Moschos-Pecuaria.md, que é a fonte oficial do escopo. Decisões de arquitetura ficam registradas em docs/adr. O modelo relacional está em db/, com a validação em docs/modelo-de-dados.md. O escopo da entrega v1.0 e o cronograma estão em docs/gestao.
+Leia docs/arquitetura.md para entender a estrutura e as decisões adotadas. Os requisitos de negócio estão no arquivo Documento-Requisitos-Moschos-Pecuaria.md, que é a fonte oficial do escopo. Decisões de arquitetura ficam registradas em docs/adr. O modelo relacional está em db/, com a validação em docs/db/modelo-de-dados.md. O escopo da entrega v1.0 e o cronograma estão em docs/gestao.
 
 ## Execução local
 

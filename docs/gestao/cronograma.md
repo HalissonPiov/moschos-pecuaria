@@ -28,7 +28,7 @@ Desde 21/11 as telas do front-end são as do protótipo V2. Em cada pacote, "Fro
 | Pacote | Atividade | Horas | Depende de |
 | --- | --- | --- | --- |
 | 2.1 | Registrar os ADRs (escopo.md, seção 9) | 1 | — |
-| 2.2 | Aplicar os ajustes do modelo (docs/modelo-de-dados.md), escrever os modelos SQLAlchemy, gerar a migration inicial e criar as categorias iniciais | 4 | 2.1 |
+| 2.2 | Aplicar os ajustes do modelo (docs/db/modelo-de-dados.md), escrever os modelos SQLAlchemy, gerar a migration inicial e criar as categorias iniciais | 4 | 2.1 |
 | 2.3 | Configurar Vitest e Testing Library, criar um teste de exemplo e incluir a etapa no CI | 1 | — |
 
 ### Semana 2 — 16/11 a 22/11 · acesso e rebanho · 12,5 h

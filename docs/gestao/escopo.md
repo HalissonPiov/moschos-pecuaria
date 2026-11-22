@@ -6,7 +6,7 @@
 | Entrega | v1.0.0, apresentada em 07/12/2026 |
 | Responsável | Hálisson Piovezana (gestão e desenvolvimento) |
 | Base | Documento-Requisitos-Moschos-Pecuaria.md, versão revisada 2 (fonte oficial dos requisitos) |
-| Modelo de dados | db/ e a validação em docs/modelo-de-dados.md |
+| Modelo de dados | db/ e a validação em docs/db/modelo-de-dados.md |
 | Versão deste documento | 2.3 — 21/11/2026 (a 2.2, de 19/11, registrou as divergências do protótipo; a 2.1, de 15/11, incorporou o modelo de dados v2; a 2.0, de 11/11, seguia os requisitos v2; a 1.0, de 08/11, a versão anterior) |
 | Cronograma associado | cronograma.md |
 
@@ -130,7 +130,7 @@ Cada pacote vira uma branch `feature/` e um PR para a develop.
 | **1** | **Gerenciamento** | Revisão semanal (3 × 15 min) e acompanhamento no cronograma | — | **0,75 h** |
 | **2** | **Fundação** | | | **6 h** |
 | 2.1 | Decisões de arquitetura | ADRs das decisões da seção 9 | RNF13, RNF14 | 1 h |
-| 2.2 | Modelo e migration inicial | Ajustes do modelo (docs/modelo-de-dados.md), modelos SQLAlchemy, migration aplicada e categorias iniciais | RN07, RN16, RN31 | 4 h |
+| 2.2 | Modelo e migration inicial | Ajustes do modelo (docs/db/modelo-de-dados.md), modelos SQLAlchemy, migration aplicada e categorias iniciais | RN07, RN16, RN31 | 4 h |
 | 2.3 | Testes de front-end | Vitest e Testing Library configurados, um teste de exemplo e etapa no CI | RNF15 | 1 h |
 | **3** | **Acesso e propriedade** | Cadastro, login, logout, cadastro de propriedade com declaração, propriedade ativa, rotas protegidas, chaves de recursos (seção 5.5) e isolamento testado | RF01, RF02 (logout), RF32, RF33, RN31, RN35, RN36, RNF04, RNF05 | **5 h** |
 | **4** | **Rebanho** | Registro com criação dos animais, listagem com saldo, detalhe com animais, edição, inativação e status | RF03, RF04, RF05, RN01–RN04, RN06 | **5 h** |
@@ -262,7 +262,7 @@ Um pacote de trabalho só está concluído quando:
 | Data | Mudança | Estimativa | Decisão | Impacto |
 | --- | --- | --- | --- | --- |
 | 11/11/2026 | Documento de requisitos v2: animal por cabeça (RF03, RN01, RN06, RN32–RN34), papéis e convites (RF32–RF36, RN35–RN39), renumeração de RF20 a RF31 e Vitest no RNF15 | Núcleo de 40,25 h; Ampliação de 30,5 h | Aceita | Escopo e cronograma reescritos (versão 2.0). Recuperação de senha, recorrência, previstos e pesagens deixam de ser "Won't" e entram na fila. |
-| 15/11/2026 | Modelo de dados versão 2 (docs/modelo-de-dados.md): ajustes A1–A6 e B1–B4, 40 CHECKs (acréscimos D1–D7) e status exibido "Encerrado" para registro com saldo zero sem venda (todos os animais baixados), além dos quatro status da RN02 | Absorvida no pacote 2.2 (4 h) | Aceita | Sem mudança de horas. A RN02 ganha um quinto status exibido, apenas derivado; o banco não muda. |
+| 15/11/2026 | Modelo de dados versão 2 (docs/db/modelo-de-dados.md): ajustes A1–A6 e B1–B4, 40 CHECKs (acréscimos D1–D7) e status exibido "Encerrado" para registro com saldo zero sem venda (todos os animais baixados), além dos quatro status da RN02 | Absorvida no pacote 2.2 (4 h) | Aceita | Sem mudança de horas. A RN02 ganha um quinto status exibido, apenas derivado; o banco não muda. |
 | 19/11/2026 | Protótipo ajustado aos requisitos v2 (etapas 0 a 6 do prompt de ajustes). Funções sem suporte no modelo v2: confirmação de e-mail, logo e capa da propriedade, características livres, documentos e anotações do lote, cor da categoria e telefone do usuário (docs/divergencias-prototipo-modelo.md, M1 a M7) | Sem horas no núcleo | Aceita com adiamento | O modelo v2 não muda até a v1.0. M1 a M7 ficam ocultos na integração e são reavaliados após 07/12; P1 a P7 são integrados com solução provisória, sem mudar o banco. |
 | 21/11/2026 | Telas do front-end substituídas pelo protótipo V2 (branch feature/frontend-v2), mantendo o projeto Vite, o cliente de API, a configuração e o CI, com 213 testes de tela (docs/gestao/consideracoes-frontend-v2.md) | Sem horas novas no núcleo; edição dos parâmetros da propriedade (RN13, RN18, RN27), que não tinha pacote, entra em A2 (+0,5 h) | Aceita | O front-end de cada pacote passa a ser integração de tela pronta. As partes de pacotes ainda não integrados e as funções sem requisito ficam ocultas (seção 5.5). Nenhuma redução de estimativa antes de medir o primeiro item integrado. |
 

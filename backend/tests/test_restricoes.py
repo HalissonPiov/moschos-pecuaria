@@ -1,6 +1,6 @@
 """Restrições do banco: o que deve ser recusado e o que deve ser aceito.
 
-Repete os testes de dado inválido de docs/modelo-de-dados.md (seção 1) sobre o banco
+Repete os testes de dado inválido de docs/db/modelo-de-dados.md (seção 1) sobre o banco
 criado pela migration, usando os modelos SQLAlchemy.
 """
 

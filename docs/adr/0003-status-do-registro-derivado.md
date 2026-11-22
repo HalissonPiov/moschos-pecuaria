@@ -7,7 +7,7 @@ Status: aceito
 
 A RN02 define os status "Em produção", "Pronto para venda", "Parcialmente vendido" e "Vendido". Os dois primeiros são decisão do produtor; os outros dois são atribuídos pelo sistema. Uma venda pode ser estornada (RF24), e então os animais voltam ao saldo (RN34).
 
-Se o status fosse uma única coluna gravada, a venda parcial sobrescreveria "Pronto para venda" com "Parcialmente vendido". Depois do estorno, não haveria como saber qual era a decisão do produtor. Esse problema foi o ajuste A3 da validação do modelo (docs/modelo-de-dados.md).
+Se o status fosse uma única coluna gravada, a venda parcial sobrescreveria "Pronto para venda" com "Parcialmente vendido". Depois do estorno, não haveria como saber qual era a decisão do produtor. Esse problema foi o ajuste A3 da validação do modelo (docs/db/modelo-de-dados.md).
 
 ## Decisão
 

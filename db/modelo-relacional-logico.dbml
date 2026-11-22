@@ -4,7 +4,7 @@
 // CSI606 - Sistemas WEB I
 //
 // VERSÃO 2 - corrigida após a validação de 11/11/2026
-// (docs/modelo-de-dados.md). Ajustes aplicados: A1 a A6, B1 a B4 e os
+// (docs/db/modelo-de-dados.md). Ajustes aplicados: A1 a A6, B1 a B4 e os
 // acréscimos D1 a D7.
 // Este é o arquivo oficial do modelo; o SQL é gerado a partir dele.
 // O banco real é criado pelas migrations Alembic: este arquivo e o SQL
