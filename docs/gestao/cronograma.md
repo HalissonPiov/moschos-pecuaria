@@ -5,7 +5,7 @@
 | Período | 11/11/2026 a 06/12/2026; apresentação em 07/12/2026 |
 | Capacidade | 6 h na semana 1 (já em andamento) e 12,5 h nas semanas seguintes, total de 43,5 h |
 | Escopo | escopo.md (os IDs dos pacotes vêm da EAP, seção 5) |
-| Versão deste documento | 2.0 — 11/11/2026 (substitui a 1.0, de 08/11, feita antes dos requisitos v2) |
+| Versão deste documento | 2.1 — 21/11/2026 (a 2.0, de 11/11, seguia os requisitos v2; a 1.0, de 08/11, a versão anterior) |
 
 ## 1. Marcos
 
@@ -20,6 +20,8 @@
 | M6 Apresentação | 07/12 (seg) | Apresentação feita com os dados de demonstração |
 
 ## 2. Cronograma semanal do núcleo
+
+Desde 21/11 as telas do front-end são as do protótipo V2. Em cada pacote, "Front-end" significa ligar a tela pronta à API e manter ocultas as partes de pacotes ainda não integrados (escopo.md, seção 5.5). As horas não mudaram.
 
 ### Semana 1 — 11/11 a 15/11 · fundação · 6 h
 
@@ -36,7 +38,7 @@ O feriado de 20/11 (sexta) não entra na capacidade. Se o núcleo estiver em dia
 | Pacote | Atividade | Horas | Depende de |
 | --- | --- | --- | --- |
 | 3 | Back-end: hash de senha, JWT, cadastro, login, cadastro de propriedade com declaração (RN35), dependência de propriedade ativa e testes de acesso negado | 3 | 2.2 |
-| 3 | Front-end: login, cadastro, propriedade com termo, seletor de propriedade ativa, rotas protegidas e logout | 2 | 3 (back) |
+| 3 | Front-end: adaptador de autenticação, sessão, rotas protegidas e logout; propriedades e cadastro com termo ligados à API; seletor de propriedade ativa; `shared/config/recursos.ts` com as funções ocultas (M1, M2, recuperação de senha e pacotes não integrados) | 2 | 3 (back) |
 | 4 | Back-end: registro com criação dos animais, saldo derivado, edição, inativação (RN04), status e filtros | 2,75 | 3 |
 | 4 | Front-end: telas Rebanho, Novo registro e Lote (com lista de animais) integradas | 2,25 | 4 (back) |
 | 5 | Back-end: categorias, lançamento, estorno com bloqueio (RN05) e custo acumulado por categoria (RN16) | 2,25 | 4 |
@@ -151,10 +153,14 @@ Probabilidade (P) e impacto (I): A = alto, M = médio, B = baixo.
 | R3 | Erro nos cálculos financeiros (RN17 a RN25) | M | A | Testes unitários com os exemplos do documento antes da tela; Decimal em todo o cálculo; recálculo centralizado em um serviço de domínio |
 | R4 | Modelo de dados exigir retrabalho | B | A | Modelo validado em 11/11 (o exemplo da RN17 foi reproduzido); ajustes aplicados antes da migration inicial |
 | R5 | Câmera ou upload falharem no celular | M | M | Testar no celular já na semana 3; a galeria serve de alternativa |
-| R6 | Escopo total (cerca de 83 h) maior que a capacidade (43,5 h) | A | M | Camadas Núcleo, Ampliação e Complementos, com fila fixa (escopo.md, seção 5.4) |
+| R6 | Escopo total (cerca de 84 h) maior que a capacidade (43,5 h) | A | M | Camadas Núcleo, Ampliação e Complementos, com fila fixa (escopo.md, seção 5.4) |
 | R7 | Docker sem permissão na máquina de desenvolvimento (ainda acontece em 11/11) | A | M | Adicionar o usuário ao grupo docker na semana 1; sem isso não há banco local para o pacote 2.2 |
 | R8 | Criação em massa de animais deixar o cadastro de lotes grandes lento | B | M | Inserção em lote na mesma transação; testar com 150 cabeças |
 | R9 | Falha durante a apresentação ao vivo | B | A | Dados de demonstração, ensaio e vídeo curto do roteiro como reserva |
+| R10 | Pacote JavaScript único de 870 kB (262 kB comprimido): primeira abertura lenta no celular com sinal fraco | M | M | No 10.2, carregar as rotas sob demanda (`lazy` do React Router) e medir de novo |
+| R11 | CSS herdado do protótipo com cerca de 11 mil linhas e regras repetidas: ajustes visuais mais lentos | M | B | Não reorganizar agora; ao mexer numa tela, limpar só as regras dela |
+| R12 | Dado de demonstração aparecer em produção numa parte de tela ainda não integrada | M | A | Regras do escopo.md (seção 5.5 e DoD); no 10.2, buscar `shared/demo` e `TODO(integração)` no build antes da release |
+| R13 | Função adiada (M1 a M7) ou de pacote não integrado aparecer ativa | M | M | Chaves em `shared/config/recursos.ts`, desligadas por padrão, com teste que confere que as partes ocultas não aparecem |
 
 ## 8. Acompanhamento
 

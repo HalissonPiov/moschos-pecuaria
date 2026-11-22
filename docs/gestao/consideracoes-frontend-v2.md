@@ -6,7 +6,7 @@
 | Mudança | As telas de `frontend/` foram substituídas pelo protótipo V2, ajustado aos requisitos v2 e ao modelo de dados v2 |
 | Branch | `feature/frontend-v2`, a partir da develop |
 | Documentos afetados | escopo.md (controle de mudanças, seção 8), cronograma.md (riscos e acompanhamento, seções 7 e 8) e arquitetura.md (já atualizado) |
-| Natureza | Registro de considerações. Este documento não altera o escopo nem o cronograma: as linhas sugeridas no fim entram nesses documentos só se aprovadas. |
+| Natureza | Registro de considerações. Incorporado em 21/11 ao escopo 2.3 (seções 3, 5.5, 7 e 8) e ao cronograma 2.1 (seções 2 e 7). A seção 7 abaixo fica como registro da proposta original. |
 
 ## 1. O que mudou
 
