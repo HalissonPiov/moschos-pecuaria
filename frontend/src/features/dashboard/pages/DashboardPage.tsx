@@ -69,9 +69,13 @@ export default function DashboardPage() {
   const state = params.get('estado') as 'loading' | 'error' | 'empty' | null
   const [helpOpen, setHelpOpen] = useState(false)
   const [paidBills, setPaidBills] = useState<string[]>([])
+  // ?nova=<n>: chegou do cadastro de propriedade, que criou n categorias sugeridas (RF11).
+  const createdCategories = Number(params.get('nova'))
   const [toast, setToast] = useState<string | null>(
-    params.get('nova') === '1'
-      ? 'Propriedade cadastrada. Criamos 6 categorias de custo para você começar.'
+    createdCategories > 0
+      ? `Propriedade cadastrada. Criamos ${createdCategories} ${
+          createdCategories === 1 ? 'categoria' : 'categorias'
+        } de custo para você começar.`
       : null,
   )
   const navigate = useNavigate()
@@ -145,6 +149,9 @@ export default function DashboardPage() {
   return (
     <AppShell>
       {visibleState ? (
+        <>
+        {/* T9: a página continua com um título principal quando só mostra o estado. */}
+        <h1 className="sr-only">Resumo da {property.name}</h1>
         <StateView
           type={visibleState}
           title={
@@ -164,6 +171,7 @@ export default function DashboardPage() {
               : setParams({})
           }
         />
+        </>
       ) : (
         <motion.div
           className="dashboard"

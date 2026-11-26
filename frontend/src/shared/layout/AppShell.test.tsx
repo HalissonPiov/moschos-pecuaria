@@ -1,6 +1,7 @@
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderRoute } from "@/test/renderRoute";
+import { sair } from "@/features/auth/api";
 
 /** Abre o seletor de propriedade da barra lateral (o primeiro na página). */
 async function abrirSeletor(user: ReturnType<typeof renderRoute>["user"]) {
@@ -61,7 +62,8 @@ describe("estrutura do app", () => {
 
     expect(await screen.findByRole("heading", { name: /entre na sua fazenda/i })).toBeInTheDocument();
     expect(pathname()).toBe("/entrar");
-    expect(screen.getByRole("status")).toHaveTextContent("Você saiu da sua conta.");
+    expect(await screen.findByRole("status")).toHaveTextContent("Você saiu da sua conta.");
+    expect(sair).toHaveBeenCalledTimes(1);
   });
 
   it("o Rebanho da Serra Bonita não mostra os lotes da Baixada", async () => {

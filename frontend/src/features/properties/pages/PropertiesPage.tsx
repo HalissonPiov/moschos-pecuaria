@@ -1,13 +1,8 @@
 /*
- * Minhas propriedades (Etapa 1.3 a 1.6).
- * Parâmetros de demonstração na URL:
- *   ?estado=empty | loading | error   estado vazio (usuário novo), carregando e erro com "Tentar de novo"
+ * Minhas propriedades (RF01, RF32, RF33, RN36).
+ * Parâmetros na URL:
  *   ?cadastro=1                        abre o cadastro de propriedade; ?passo=1|2|3 abre no passo
- *   ?cadastro=erro                     o cadastro falha na primeira tentativa (estado de erro)
- *   ?acao=editar|titular|inativar&id=  abre a ação do menu do cartão (respeita a permissão)
- *   ?inativada=<id>                    volta de Configurações com a propriedade inativada (toast)
- *   ?deixou=<id>                       volta de Configurações depois de "Sair desta propriedade"
- *   ?nova=1                            toast de propriedade cadastrada
+ *   ?acao=editar|titular|inativar&id=  ações do menu do cartão (ocultas até o A5)
  */
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
@@ -28,12 +23,15 @@ import {
   UsersRound,
 } from 'lucide-react'
 import { motion } from 'motion/react'
-import { listableProperties, type PropertyInfo } from '@/shared/demo/data'
+import type { PropertyInfo } from '@/shared/demo/data'
+import { recursos } from '@/shared/config/recursos'
+import { iniciais, useSair, useSessao } from '@/features/auth/session'
+import { listarPropriedades, type PropriedadeCriada } from '@/features/properties/api'
+import { lerUltimaPropriedade, paraPropertyInfo } from '@/features/properties/model'
 import PropertyRegistration, {
   canManageOwner,
   OWNER_ONLY_COPY,
   states as ufList,
-  type RegisteredProperty,
 } from '@/features/properties/components/PropertyRegistration'
 import { Brand, Button, Field, Modal, StateView, Toast } from '@/shared/ui/UI'
 
@@ -49,24 +47,7 @@ type PropertyCardData = Pick<
 
 type CardAction = 'edit' | 'owner' | 'inactive'
 
-const initialProperties: PropertyCardData[] = [
-  ...listableProperties.map((property) => ({ ...property, inactive: false })),
-  {
-    id: 'boa-esperanca',
-    name: 'Fazenda Boa Esperança',
-    place: 'Mariana/MG',
-    municipality: 'Mariana',
-    uf: 'MG',
-    area: '36 ha',
-    role: 'Proprietário',
-    owner: 'João Batista',
-    confirmed: true,
-    logo: '',
-    cover: '',
-    lastUsed: false,
-    inactive: true,
-  },
-]
+type Load = { status: 'loading' } | { status: 'error' } | { status: 'ready' }
 
 const actionParam: Record<string, CardAction> = {
   editar: 'edit',
@@ -74,38 +55,55 @@ const actionParam: Record<string, CardAction> = {
   inativar: 'inactive',
 }
 
+/** Cada ação do cartão só existe quando o pacote dela estiver integrado (escopo, seção 5.5). */
+function enabledActions(): Record<CardAction, boolean> {
+  return {
+    edit: recursos.edicaoDaPropriedade,
+    owner: recursos.gestaoDeMembros,
+    inactive: recursos.gestaoDeMembros,
+  }
+}
+
 export default function PropertiesPage() {
   const [params, setParams] = useSearchParams()
-  const state = params.get('estado') as 'loading' | 'error' | 'empty' | null
   const registration = params.get('cadastro')
-  const addOpen = registration === '1' || registration === 'erro'
+  const addOpen = registration === '1'
   const step = Math.min(3, Math.max(1, Number(params.get('passo')) || 1))
-  const [list, setList] = useState<PropertyCardData[]>(() => {
-    const inactivated = params.get('inativada') || params.get('deixou')
-    return initialProperties
-      .filter((item) => item.id !== params.get('deixou'))
-      .map((item) => (item.id === inactivated ? { ...item, inactive: true } : item))
-  })
+  const [load, setLoad] = useState<Load>({ status: 'loading' })
+  const [attempt, setAttempt] = useState(0)
+  const [list, setList] = useState<PropertyCardData[]>([])
   const [menuId, setMenuId] = useState<string | null>(null)
   const [helpOpen, setHelpOpen] = useState(false)
-  const [toast, setToast] = useState<string | null>(() => {
-    if (params.get('nova') === '1')
-      return 'Propriedade cadastrada. Criamos 6 categorias de custo para você começar.'
-    const inactivated = initialProperties.find((item) => item.id === params.get('inativada'))
-    if (inactivated) return `${inactivated.name} foi inativada. Nada foi apagado.`
-    const left = initialProperties.find((item) => item.id === params.get('deixou'))
-    if (left) return `Você saiu da ${left.name}.`
-    return null
-  })
+  const [toast, setToast] = useState<string | null>(null)
   const [showInactive, setShowInactive] = useState(true)
   const navigate = useNavigate()
   const menuRef = useRef<HTMLDivElement>(null)
+  const sessao = useSessao()
+  const userName = sessao.usuario?.nome ?? ''
+  const actionEnabled = enabledActions()
+  const cardMenuEnabled = Object.values(actionEnabled).some(Boolean)
+
+  useEffect(() => {
+    let active = true
+    setLoad({ status: 'loading' })
+    listarPropriedades()
+      .then((items) => {
+        if (!active) return
+        const lastUsed = sessao.usuario ? lerUltimaPropriedade(sessao.usuario.id) : null
+        setList(items.map((item) => ({ ...paraPropertyInfo(item, lastUsed), inactive: false })))
+        setLoad({ status: 'ready' })
+      })
+      .catch(() => active && setLoad({ status: 'error' }))
+    return () => {
+      active = false
+    }
+  }, [attempt, sessao.usuario])
 
   const actionId = params.get('id')
   const requestedAction = actionParam[params.get('acao') || '']
   const selected = list.find((item) => item.id === actionId) || null
   const action: CardAction | null =
-    selected && requestedAction && !selected.inactive
+    selected && requestedAction && actionEnabled[requestedAction] && !selected.inactive
       ? requestedAction === 'edit' || canManageOwner(selected)
         ? requestedAction
         : null
@@ -149,20 +147,13 @@ export default function PropertiesPage() {
     setList((current) => current.map((item) => (item.id === id ? { ...item, ...changes } : item)))
   }
 
-  function logout() {
-    navigate('/entrar?saiu=1')
+  const logout = useSair()
+
+  function propertyRegistered(property: PropriedadeCriada) {
+    navigate(`/fazenda/${property.id}/resumo?nova=${property.categorias_criadas.length}`)
   }
 
-  function propertyRegistered(property: RegisteredProperty) {
-    // TODO(integração): usar o identificador retornado pela API e persistir os dados digitados.
-    try {
-      sessionStorage.setItem('mochos:new-property-name', property.name)
-    } catch {
-      // Sem sessionStorage o Resumo usa o nome padrão.
-    }
-    navigate('/fazenda/nova-propriedade/resumo?nova=1')
-  }
-
+  const state = load.status === 'ready' ? (list.length ? null : 'empty') : load.status
   const visible = list.filter((property) => !property.inactive || showInactive)
   const inactiveCount = list.filter((property) => property.inactive).length
 
@@ -171,9 +162,9 @@ export default function PropertiesPage() {
       <header className="properties-header">
         <Brand compact />
         <div className="properties-header__user">
-          <span aria-hidden="true">JB</span>
+          <span aria-hidden="true">{iniciais(userName)}</span>
           <div>
-            <strong>João Batista</strong>
+            <strong>{userName}</strong>
             <small>Produtor rural</small>
           </div>
           <button className="icon-button" onClick={logout} aria-label="Sair da conta">
@@ -233,7 +224,7 @@ export default function PropertiesPage() {
           <StateView
             type="error"
             title="Não conseguimos carregar suas propriedades"
-            onAction={() => updateParams({ estado: null })}
+            onAction={() => setAttempt((value) => value + 1)}
           />
         ) : (
           <motion.div
@@ -321,6 +312,7 @@ export default function PropertiesPage() {
                     show: { opacity: 1, y: 0 },
                   }}
                 >
+                  {cardMenuEnabled && (
                   <div className="property-card__menu-wrap" ref={menuId === property.id ? menuRef : undefined}>
                     <button
                       className="property-card__menu"
@@ -348,31 +340,38 @@ export default function PropertiesPage() {
                           </button>
                         ) : (
                           <>
-                            <button onClick={() => openAction(property, 'edit')}>
-                              <Pencil aria-hidden="true" />
-                              Editar dados
-                            </button>
-                            <button
-                              disabled={!allowed}
-                              onClick={() => openAction(property, 'owner')}
-                            >
-                              <UserRound aria-hidden="true" />
-                              Alterar titular
-                              {!allowed && <small>{OWNER_ONLY_COPY}</small>}
-                            </button>
-                            <button
-                              disabled={!allowed}
-                              onClick={() => openAction(property, 'inactive')}
-                            >
-                              <Power aria-hidden="true" />
-                              Inativar propriedade
-                              {!allowed && <small>{OWNER_ONLY_COPY}</small>}
-                            </button>
+                            {actionEnabled.edit && (
+                              <button onClick={() => openAction(property, 'edit')}>
+                                <Pencil aria-hidden="true" />
+                                Editar dados
+                              </button>
+                            )}
+                            {actionEnabled.owner && (
+                              <button
+                                disabled={!allowed}
+                                onClick={() => openAction(property, 'owner')}
+                              >
+                                <UserRound aria-hidden="true" />
+                                Alterar titular
+                                {!allowed && <small>{OWNER_ONLY_COPY}</small>}
+                              </button>
+                            )}
+                            {actionEnabled.inactive && (
+                              <button
+                                disabled={!allowed}
+                                onClick={() => openAction(property, 'inactive')}
+                              >
+                                <Power aria-hidden="true" />
+                                Inativar propriedade
+                                {!allowed && <small>{OWNER_ONLY_COPY}</small>}
+                              </button>
+                            )}
                           </>
                         )}
                       </div>
                     )}
                   </div>
+                  )}
                   {property.inactive ? (
                     <div className="property-card__main" aria-disabled="true">
                       {content}
@@ -422,7 +421,6 @@ export default function PropertiesPage() {
         open={addOpen}
         step={step}
         onStepChange={(next) => updateParams({ passo: String(next) })}
-        simulateFailure={registration === 'erro'}
         onClose={() => updateParams({ cadastro: null, passo: null })}
         onSuccess={propertyRegistered}
       />

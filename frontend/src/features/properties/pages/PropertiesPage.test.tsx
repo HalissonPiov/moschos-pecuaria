@@ -1,5 +1,11 @@
 import { screen, waitFor, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { ApiError } from "@/shared/api/client";
+import { sair } from "@/features/auth/api";
+import { cadastrarPropriedade, listarPropriedades } from "@/features/properties/api";
+import { guardarUltimaPropriedade } from "@/features/properties/model";
+import { comRecursos } from "@/test/recursos";
+import { usuarioDemo } from "@/test/fakes";
 import { renderRoute } from "@/test/renderRoute";
 
 /** O cartão (article) de uma propriedade, achado pelo nome. */
@@ -30,39 +36,69 @@ describe("minhas propriedades", () => {
     expect(pathname()).toBe("/fazenda/serra-bonita/resumo");
   });
 
-  it("a propriedade inativa aparece apagada e não abre", async () => {
+  it("o cabeçalho mostra o usuário da sessão", async () => {
     renderRoute("/propriedades");
 
-    const card = await screen.findByRole("article", { name: "Fazenda Boa Esperança (inativa)" });
-    expect(card).toHaveClass("property-card--inactive");
-    expect(within(card).getByText("Inativa")).toBeInTheDocument();
-    expect(within(card).queryByRole("link")).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /boa esperança/i })).not.toBeInTheDocument();
+    expect(await screen.findByText("João Batista")).toBeInTheDocument();
+    expect(screen.getByText("JB")).toBeInTheDocument();
   });
 
-  it("o proprietário pode reativar a propriedade inativa", async () => {
+  it("marca a última propriedade usada neste aparelho, por usuário (P6)", async () => {
+    guardarUltimaPropriedade(99, "baixada"); // outro usuário no mesmo aparelho
+    guardarUltimaPropriedade(usuarioDemo.id, "serra-bonita");
+    renderRoute("/propriedades");
+
+    expect(within(await cartao("Sítio Serra Bonita")).getByText("Última usada")).toBeInTheDocument();
+    expect(within(await cartao("Fazenda da Baixada")).queryByText("Última usada")).not.toBeInTheDocument();
+    localStorage.clear();
+  });
+
+  it("na v1.0 o cartão não tem menu de editar, alterar titular ou inativar (A5)", async () => {
+    renderRoute("/propriedades");
+
+    await cartao("Fazenda da Baixada");
+    expect(screen.queryByRole("button", { name: /mais opções/i })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/mostrar inativas/i)).not.toBeInTheDocument();
+  });
+
+  it("erro ao carregar oferece tentar de novo", async () => {
+    vi.mocked(listarPropriedades).mockRejectedValueOnce(new ApiError("Sem conexão.", 0));
     const { user } = renderRoute("/propriedades");
 
-    await user.click(
-      await screen.findByRole("button", { name: "Mais opções para Fazenda Boa Esperança" }),
-    );
-    const reativar = screen.getByRole("button", { name: /reativar/i });
-    expect(reativar).toBeEnabled();
-    await user.click(reativar);
+    expect(
+      await screen.findByRole("heading", { name: "Não conseguimos carregar suas propriedades" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Tentar de novo" }));
 
-    expect(await screen.findByRole("link", { name: "Entrar na Fazenda Boa Esperança" })).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent(/foi reativada/i);
+    expect(await cartao("Fazenda da Baixada")).toBeInTheDocument();
+    expect(listarPropriedades).toHaveBeenCalledTimes(2);
   });
 
-  it("o gestor de propriedade confirmada não pode reativar", async () => {
-    const { user } = renderRoute("/propriedades?inativada=cedro-alto");
+  it("Sair encerra a sessão e volta para a tela de acesso", async () => {
+    const { user, pathname } = renderRoute("/propriedades");
 
-    expect(await screen.findByRole("status")).toHaveTextContent(/cedro alto foi inativada/i);
-    await user.click(screen.getByRole("button", { name: "Mais opções para Fazenda Cedro Alto" }));
+    await user.click(await screen.findByRole("button", { name: "Sair da conta" }));
 
-    expect(screen.getByRole("button", { name: /reativar/i })).toBeDisabled();
-    expect(screen.getByText("Só o proprietário pode fazer isso.")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /entre na sua fazenda/i })).toBeInTheDocument();
+    expect(pathname()).toBe("/entrar");
+    expect(sair).toHaveBeenCalledTimes(1);
   });
+
+  it("usuário novo vê o estado vazio", async () => {
+    vi.mocked(listarPropriedades).mockResolvedValueOnce([]);
+    const { user } = renderRoute("/propriedades");
+
+    expect(
+      await screen.findByRole("heading", { name: "Cadastre sua primeira propriedade" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("article")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Cadastrar primeira propriedade" }));
+    expect(await screen.findByRole("dialog", { name: "Cadastrar propriedade" })).toBeInTheDocument();
+  });
+});
+
+describe("minhas propriedades · menu do cartão (A5, quando religado)", () => {
+  comRecursos("gestaoDeMembros", "edicaoDaPropriedade");
 
   it("no menu da Cedro Alto, titular e inativação ficam bloqueados com explicação", async () => {
     const { user } = renderRoute("/propriedades");
@@ -106,16 +142,6 @@ describe("minhas propriedades", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("usuário novo vê o estado vazio", async () => {
-    const { user } = renderRoute("/propriedades?estado=empty");
-
-    expect(
-      await screen.findByRole("heading", { name: "Cadastre sua primeira propriedade" }),
-    ).toBeInTheDocument();
-    expect(screen.queryByRole("article")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Cadastrar primeira propriedade" }));
-    expect(await screen.findByRole("dialog", { name: "Cadastrar propriedade" })).toBeInTheDocument();
-  });
 });
 
 describe("cadastro de propriedade", () => {
@@ -207,5 +233,61 @@ describe("cadastro de propriedade", () => {
     );
     expect(router.state.location.search).toContain("passo=3");
     expect(router.state.location.pathname).toBe("/propriedades");
+  });
+
+  it("não oferece logo nem capa (M2)", async () => {
+    renderRoute("/propriedades?cadastro=1");
+    const dialogo = within(await screen.findByRole("dialog", { name: "Cadastrar propriedade" }));
+
+    expect(dialogo.queryByText(/logo/i)).not.toBeInTheDocument();
+    expect(dialogo.queryByText(/foto de capa/i)).not.toBeInTheDocument();
+  });
+
+  it("envia os dados, o papel e o aceite do termo e abre a propriedade criada (RN35)", async () => {
+    const { user, pathname, router } = renderRoute("/propriedades?cadastro=1");
+    const dialogo = within(await screen.findByRole("dialog", { name: "Cadastrar propriedade" }));
+
+    await user.type(dialogo.getByLabelText("Nome da propriedade"), "Sítio Novo");
+    await user.type(dialogo.getByLabelText("Município"), "Viçosa");
+    await user.type(dialogo.getByLabelText("Área em hectares (opcional)"), "1.234,5");
+    await user.click(dialogo.getByRole("radio", { name: /faço a gestão/i }));
+    await user.type(dialogo.getByLabelText("Nome do dono da propriedade"), "Rosa Lima");
+    await user.click(dialogo.getByRole("checkbox", { name: /declaro que/i }));
+    await user.click(dialogo.getAllByRole("button", { name: "Cadastrar propriedade" })[0]);
+
+    expect(
+      await screen.findByText(
+        "Propriedade cadastrada. Criamos 5 categorias de custo para você começar.",
+      ),
+    ).toBeInTheDocument();
+    expect(cadastrarPropriedade).toHaveBeenCalledWith({
+      nome: "Sítio Novo",
+      municipio: "Viçosa",
+      uf: "MG",
+      area_hectares: "1234.50",
+      titular_nome: "Rosa Lima",
+      papel: "gestor",
+      aceite_termo: true,
+      versao_termo: "1.0",
+    });
+    expect(pathname()).toBe("/fazenda/nova-propriedade/resumo");
+    expect(router.state.location.search).toBe("?nova=5");
+  });
+
+  it("falha da API mantém o cadastro aberto com a mensagem", async () => {
+    vi.mocked(cadastrarPropriedade).mockRejectedValueOnce(
+      new ApiError("O termo de declaração mudou. Leia a versão atual e aceite de novo.", 422),
+    );
+    const { user, pathname } = renderRoute("/propriedades?cadastro=1");
+    const dialogo = within(await screen.findByRole("dialog", { name: "Cadastrar propriedade" }));
+
+    await user.type(dialogo.getByLabelText("Nome da propriedade"), "Sítio Novo");
+    await user.type(dialogo.getByLabelText("Município"), "Viçosa");
+    await user.click(dialogo.getByRole("checkbox", { name: /declaro que/i }));
+    await user.click(dialogo.getAllByRole("button", { name: "Cadastrar propriedade" })[0]);
+
+    expect(await dialogo.findByRole("alert")).toHaveTextContent(/o termo de declaração mudou/i);
+    expect(pathname()).toBe("/propriedades");
+    expect(dialogo.getAllByRole("button", { name: "Tentar de novo" })[0]).toBeEnabled();
   });
 });

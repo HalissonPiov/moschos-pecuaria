@@ -1,6 +1,8 @@
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { renderRoute } from "@/test/renderRoute";
+import { comRecursos } from "@/test/recursos";
+import { sair } from "@/features/auth/api";
 
 const configuracoes = "/fazenda/baixada/configuracoes";
 
@@ -14,7 +16,55 @@ function secao(nome: string) {
   return screen.getByRole("region", { name: nome });
 }
 
+describe("Configurações · v1.0 (pacote 3)", () => {
+  it("só mostra as seções já integradas", async () => {
+    await abrirConfiguracoes();
+    const nav = screen.getByRole("navigation", { name: "Seções de Configurações" });
+
+    expect(within(nav).getAllByRole("link").map((link) => link.textContent)).toEqual([
+      "Sua conta",
+      "Propriedade ativa",
+      "Como calculamos",
+      "Em breve",
+    ]);
+    for (const oculta of ["Parâmetros da propriedade", "Cadastros", "Membros e convites", "Relatórios"]) {
+      expect(screen.queryByRole("region", { name: oculta })).not.toBeInTheDocument();
+    }
+  });
+
+  it("Sua conta mostra o usuário da sessão, sem troca de senha nem edição de perfil", async () => {
+    await abrirConfiguracoes();
+    const conta = secao("Sua conta");
+
+    expect(conta).toHaveTextContent("João Batista");
+    expect(conta).toHaveTextContent("joao@fazendadabaixada.com.br");
+    expect(within(conta).queryByText("Trocar senha")).not.toBeInTheDocument();
+    expect(within(conta).queryByLabelText("Editar perfil")).not.toBeInTheDocument();
+  });
+
+  it("Propriedade ativa mostra titular e termo, sem alterar titular nem inativar (A5)", async () => {
+    await abrirConfiguracoes();
+    const propriedade = secao("Propriedade ativa");
+
+    expect(propriedade).toHaveTextContent("Titular: João Batista e Maria Aparecida Batista");
+    expect(within(propriedade).queryByRole("button", { name: "Alterar titular" })).not.toBeInTheDocument();
+    expect(within(propriedade).queryByText("Inativar propriedade")).not.toBeInTheDocument();
+  });
+
+  it("Sair encerra a sessão", async () => {
+    const { user, pathname } = await abrirConfiguracoes();
+
+    await user.click(within(secao("Sua conta")).getByRole("button", { name: /sair/i }));
+
+    expect(await screen.findByRole("heading", { name: /entre na sua fazenda/i })).toBeInTheDocument();
+    expect(pathname()).toBe("/entrar");
+    expect(sair).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("Configurações · parâmetros e termo", () => {
+  comRecursos("parametrosDaPropriedade");
+
   it("mostra os parâmetros padrão da propriedade", async () => {
     await abrirConfiguracoes();
     const parametros = secao("Parâmetros da propriedade");
@@ -64,6 +114,8 @@ describe("Configurações · parâmetros e termo", () => {
 });
 
 describe("Configurações · cadastros e em breve", () => {
+  comRecursos("cadastrosDaPropriedade");
+
   it("tem abas de pastos, fornecedores, compradores e categorias", async () => {
     const { user } = await abrirConfiguracoes();
     const cadastros = secao("Cadastros");
@@ -117,6 +169,8 @@ describe("Configurações · cadastros e em breve", () => {
 });
 
 describe("Configurações · membros e convites", () => {
+  comRecursos("gestaoDeMembros");
+
   it("o proprietário remove um gestor e o último membro fica protegido", async () => {
     const { user } = await abrirConfiguracoes();
     const membros = secao("Membros e convites");
@@ -195,6 +249,8 @@ describe("Configurações · membros e convites", () => {
 });
 
 describe("Configurações · relatórios", () => {
+  comRecursos("relatorios");
+
   it("filtra por lote, mostra a prévia e gera o PDF", async () => {
     const { user } = await abrirConfiguracoes();
     const relatorios = secao("Relatórios");
@@ -253,6 +309,8 @@ describe("Configurações · relatórios", () => {
 });
 
 describe("Configurações · relatórios por período (C5.10)", () => {
+  comRecursos("relatorios");
+
   it("margens somam só as vendas do período escolhido", async () => {
     const { user } = await abrirConfiguracoes();
     const relatorios = secao("Relatórios");

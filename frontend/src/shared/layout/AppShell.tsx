@@ -16,7 +16,8 @@ import {
 } from 'lucide-react'
 import { Brand, Button } from '@/shared/ui/UI'
 import { useActiveProperty } from '@/shared/routing/navigation'
-import { listableProperties, type PropertyId } from '@/shared/demo/data'
+import type { PropertyId, PropertyInfo } from '@/shared/demo/data'
+import { useSair } from '@/features/auth/session'
 import { Toast } from '@/shared/ui/UI'
 
 const BRAND_MARK = '/assets/mochos-marca-verde.png'
@@ -52,7 +53,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<string | null>(null)
   const navigate = useNavigate()
   const location = useLocation()
-  const { base, property, id } = useActiveProperty()
+  const { base, property, id, list } = useActiveProperty()
+  const logout = useSair()
   // O aviso da troca vai no state da rota: cada página monta o próprio AppShell, então
   // um setToast antes de navegar se perderia na remontagem.
   const switchedTo = (location.state as { switchedTo?: string } | null)?.switchedTo
@@ -73,7 +75,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   useDismiss(mobileMenuOpen, () => setMobileMenuOpen(false), accountRef)
 
   function switchProperty(nextId: PropertyId) {
-    const next = listableProperties.find((item) => item.id === nextId)
+    const next = list.find((item) => item.id === nextId)
     setSwitchOpen(null)
     if (!next || nextId === id) return
     // Outra propriedade não tem os mesmos lotes/abas abertos: entra no Resumo dela.
@@ -88,9 +90,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [switchedTo])
 
-  function logout() {
-    navigate('/entrar?saiu=1')
-  }
 
   useEffect(() => {
     const openPurchase = () => navigate(`${base}/custos/nova-compra`)
@@ -136,7 +135,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             {!collapsed && <ChevronDown size={18} aria-hidden="true" />}
           </button>
           {switchOpen === 'sidebar' && !collapsed && (
-            <PropertySwitcher activeId={id} onSwitch={switchProperty} />
+            <PropertySwitcher items={list} activeId={id} onSwitch={switchProperty} />
           )}
         </div>
         <nav className="sidebar__nav" aria-label="Navegação principal">
@@ -188,7 +187,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             <ChevronDown size={18} aria-hidden="true" />
           </button>
           {switchOpen === 'mobile' && (
-            <PropertySwitcher activeId={id} onSwitch={switchProperty} mobile />
+            <PropertySwitcher items={list} activeId={id} onSwitch={switchProperty} mobile />
           )}
         </div>
         <div className="mobile-account" ref={accountRef}>
@@ -246,10 +245,12 @@ export default function AppShell({ children }: { children: ReactNode }) {
 }
 
 function PropertySwitcher({
+  items,
   activeId,
   onSwitch,
   mobile,
 }: {
+  items: PropertyInfo[]
   activeId: PropertyId
   onSwitch: (id: PropertyId) => void
   mobile?: boolean
@@ -261,7 +262,7 @@ function PropertySwitcher({
       aria-label="Trocar propriedade"
     >
       <span className="property-switcher__label">TROCAR PROPRIEDADE</span>
-      {listableProperties.map((item) => (
+      {items.map((item) => (
         <button
           key={item.id}
           className={item.id === activeId ? 'active' : ''}
