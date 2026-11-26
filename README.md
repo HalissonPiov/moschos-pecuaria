@@ -102,18 +102,3 @@ docker compose up --build
 ~~~
 
 Use sempre `--build` depois de mudar o back-end ou trocar de branch: sem ele, o compose reaproveita a imagem antiga da API, e as rotas novas respondem 404. Se a porta 8000 já estiver em uso por outro projeto, a API não sobe direito (o container fica sem rede e não acha o host `db`). Nesse caso, defina `API_PORT=8001` no .env da raiz e `API_PROXY_TARGET=http://localhost:8001` em frontend/.env. O compose inicia PostgreSQL e API, aplicando as migrations na subida da API; durante o desenvolvimento o front-end roda localmente para manter o hot reload. No Linux, se aparecer "permission denied" no socket do Docker, adicione seu usuário ao grupo docker (`sudo usermod -aG docker $USER`) e abra uma nova sessão.
-
-## Verificações
-
-As mesmas verificações rodam no GitHub Actions a cada push em main e develop e em pull requests.
-
-Os testes marcados com `db` usam um PostgreSQL real: o banco `moschos_test` é criado no Postgres do docker compose, com o servidor e as credenciais do `DATABASE_URL` de `backend/.env`, e recriado pela migration a cada execução (outro endereço pode ser informado em `TEST_DATABASE_URL`). Só são pulados localmente quando o banco está fora do ar; com credenciais erradas eles falham. No CI eles sempre rodam.
-
-~~~
-cd backend && ruff check . && ruff format --check . && pytest
-cd frontend && pnpm test && pnpm build
-~~~
-
-## Fluxo de trabalho
-
-O repositório segue Gitflow: main recebe apenas versões entregues, develop integra o trabalho em andamento e cada funcionalidade nasce em feature/nome-curto a partir de develop. As mensagens de commit seguem Conventional Commits (feat, fix, docs, chore, ci, refactor, test).
