@@ -27,7 +27,8 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "8000:8000"
+      # Outra porta no computador, se a 8000 já estiver em uso: API_PORT=8001 no .env
+      - "${API_PORT:-8000}:8000"
 
 volumes:
   postgres-data:

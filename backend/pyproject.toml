@@ -5,9 +5,12 @@ description = "API do Mo$chos Pecuária"
 requires-python = ">=3.12"
 dependencies = [
   "alembic>=1.14,<2",
+  "email-validator>=2.2,<3",
   "fastapi>=0.115,<0.116",
   "pydantic-settings>=2.6,<3",
   "psycopg[binary]>=3.2,<4",
+  "pwdlib[argon2]>=0.2,<0.4",
+  "pyjwt>=2.9,<3",
   "sqlalchemy>=2.0,<3",
   "uvicorn[standard]>=0.32,<1",
 ]

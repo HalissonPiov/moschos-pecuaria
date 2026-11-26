@@ -40,6 +40,9 @@ import { Button, Field, Modal, StateView, Toast, type ToastAction } from '@/shar
 import { CalculationContent } from '@/shared/ui/BusinessRules'
 import { propertyNotFoundCopy, useActiveProperty } from '@/shared/routing/navigation'
 import { useBackendData } from '@/shared/demo/backend-data'
+import { recursos } from '@/shared/config/recursos'
+import { iniciais, useSair, useSessao } from '@/features/auth/session'
+import { usePropriedadeAtiva } from '@/features/properties/components/PropriedadeAtivaRoute'
 import {
   costCategories,
   decimal,
@@ -88,6 +91,16 @@ const sections = [
   ['calculos', 'Como calculamos'],
   ['em-breve', 'Em breve'],
 ] as const
+
+/** Seções de pacotes ainda não integrados ficam ocultas (escopo, seção 5.5). */
+function hiddenSectionsNow(): Partial<Record<(typeof sections)[number][0], boolean>> {
+  return {
+    parametros: !recursos.parametrosDaPropriedade,
+    cadastros: !recursos.cadastrosDaPropriedade,
+    membros: !recursos.gestaoDeMembros,
+    relatorios: !recursos.relatorios,
+  }
+}
 
 const directoryKinds = [
   ['pasto', 'Pastos', 'pasto'],
@@ -190,6 +203,16 @@ export default function SettingsPage() {
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const { property: routeProperty, id, found } = useActiveProperty()
+  const sessao = useSessao()
+  const logout = useSair()
+  const hiddenSections = hiddenSectionsNow()
+  const activeProperty = usePropriedadeAtiva()?.propriedade
+  const account = { name: sessao.usuario?.nome ?? '', email: sessao.usuario?.email ?? '' }
+  // Data e versão do termo aceito pelo usuário nesta propriedade (RN35).
+  const termDate = activeProperty
+    ? new Date(activeProperty.aceite_declaracao_em).toLocaleDateString('pt-BR')
+    : (termAcceptedAt[id] ?? TODAY)
+  const termVersion = activeProperty?.versao_termo ?? '1.0'
   const backend = useBackendData()
   const listState = params.get('estado') as 'vazio' | 'carregando' | 'erro' | null
   const [overrides, setOverrides] = useState<Record<string, Partial<PropertyInfo>>>({})
@@ -427,7 +450,7 @@ export default function SettingsPage() {
           </div>
         </header>
         <nav className="settings-section-nav" aria-label="Seções de Configurações">
-          {sections.map(([key, label]) => (
+          {sections.filter(([key]) => !hiddenSections[key]).map(([key, label]) => (
             <Link
               key={key}
               to={`?secao=${key}`}
@@ -446,16 +469,21 @@ export default function SettingsPage() {
               title="Sua conta"
               text="Perfil e segurança do seu acesso."
             >
-              <button className="settings-row" onClick={() => openModal('profile')}>
+              <button
+                className="settings-row"
+                onClick={() => openModal('profile')}
+                disabled={!recursos.edicaoDoPerfil}
+              >
                 <span className="settings-avatar" aria-hidden="true">
-                  JB
+                  {iniciais(account.name)}
                 </span>
                 <p>
-                  <strong>{user.name}</strong>
-                  <small>{user.email}</small>
+                  <strong>{account.name}</strong>
+                  <small>{account.email}</small>
                 </p>
-                <Edit3 aria-label="Editar perfil" />
+                {recursos.edicaoDoPerfil && <Edit3 aria-label="Editar perfil" />}
               </button>
+              {recursos.trocaDeSenha && (
               <button className="settings-row" onClick={() => openModal('password')}>
                 <span aria-hidden="true">
                   <KeyRound />
@@ -466,9 +494,10 @@ export default function SettingsPage() {
                 </p>
                 <ChevronRight aria-hidden="true" />
               </button>
+              )}
               <button
                 className="settings-row settings-row--danger"
-                onClick={() => navigate('/entrar?saiu=1')}
+                onClick={logout}
               >
                 <span aria-hidden="true">
                   <LogOut />
@@ -487,7 +516,11 @@ export default function SettingsPage() {
               title="Propriedade ativa"
               text="Dados, titularidade e responsabilidade."
             >
-              <button className="settings-row" onClick={() => openModal('property')}>
+              <button
+                className="settings-row"
+                onClick={() => openModal('property')}
+                disabled={!recursos.edicaoDaPropriedade}
+              >
                 <span className="property-mini-logo" aria-hidden="true">
                   {property.logo ? <img src={property.logo} width={40} height={40} alt="" /> : initials(property.name)}
                 </span>
@@ -497,33 +530,38 @@ export default function SettingsPage() {
                     {property.place} · {property.area}
                   </small>
                 </p>
-                <Edit3 aria-label="Editar dados da propriedade" />
+                {recursos.edicaoDaPropriedade && <Edit3 aria-label="Editar dados da propriedade" />}
               </button>
               <div className="property-details">
                 <strong>Titular: {property.owner}</strong>
                 <small>{property.ownership}</small>
-                <button
-                  type="button"
-                  className="text-link"
-                  disabled={!manage}
-                  onClick={() => openModal('owner')}
-                >
-                  Alterar titular
-                </button>
-                {!manage && <small className="permission-note">{OWNER_ONLY_COPY}</small>}
+                {recursos.gestaoDeMembros && (
+                  <>
+                    <button
+                      type="button"
+                      className="text-link"
+                      disabled={!manage}
+                      onClick={() => openModal('owner')}
+                    >
+                      Alterar titular
+                    </button>
+                    {!manage && <small className="permission-note">{OWNER_ONLY_COPY}</small>}
+                  </>
+                )}
               </div>
               <div className="accepted-term">
                 <UserRound aria-hidden="true" />
                 <p>
                   <strong>Seu papel: {property.role}</strong>
                   <small>
-                    Termo aceito em {termAcceptedAt[id] ?? TODAY} (versão 1.0)
+                    Termo aceito em {termDate} (versão {termVersion})
                   </small>
                 </p>
                 <button type="button" onClick={() => openModal('term')}>
                   Ver termo
                 </button>
               </div>
+              {recursos.gestaoDeMembros && (
               <button
                 className="settings-row settings-row--danger"
                 disabled={!manage}
@@ -540,9 +578,11 @@ export default function SettingsPage() {
                 </p>
                 <ChevronRight aria-hidden="true" />
               </button>
+              )}
             </SettingsSection>
 
             <SettingsSection
+              hidden={hiddenSections.parametros}
               id="parametros"
               icon={<Calculator aria-hidden="true" />}
               title="Parâmetros da propriedade"
@@ -596,6 +636,7 @@ export default function SettingsPage() {
             </SettingsSection>
 
             <SettingsSection
+              hidden={hiddenSections.cadastros}
               id="cadastros"
               icon={<Edit3 aria-hidden="true" />}
               title="Cadastros"
@@ -687,6 +728,7 @@ export default function SettingsPage() {
             </SettingsSection>
 
             <SettingsSection
+              hidden={hiddenSections.membros}
               id="membros"
               icon={<Users aria-hidden="true" />}
               title="Membros e convites"
@@ -813,6 +855,7 @@ export default function SettingsPage() {
             </SettingsSection>
 
             <SettingsSection
+              hidden={hiddenSections.relatorios}
               id="relatorios"
               icon={<FileSpreadsheet aria-hidden="true" />}
               title="Relatórios"
@@ -1093,7 +1136,7 @@ export default function SettingsPage() {
         role={property.role === 'Proprietário' ? 'owner' : 'manager'}
         open={modal === 'term'}
         onClose={() => setModal(null)}
-        acceptedAt={termAcceptedAt[id] ?? TODAY}
+        acceptedAt={termDate}
       />
 
       {/* Cadastros */}
@@ -1331,18 +1374,21 @@ export default function SettingsPage() {
 }
 
 function SettingsSection({
+  hidden,
   id,
   icon,
   title,
   text,
   children,
 }: {
+  hidden?: boolean
   id: string
   icon: React.ReactNode
   title: string
   text: string
   children: React.ReactNode
 }) {
+  if (hidden) return null
   return (
     <section
       className="settings-section"

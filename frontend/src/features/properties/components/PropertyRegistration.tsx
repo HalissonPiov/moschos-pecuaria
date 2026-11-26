@@ -14,7 +14,12 @@ import {
   UsersRound,
 } from 'lucide-react'
 import { Button, Field, Modal } from '@/shared/ui/UI'
-import { user, type PropertyInfo } from '@/shared/demo/data'
+import type { PropertyInfo } from '@/shared/demo/data'
+import { ApiError } from '@/shared/api/client'
+import { recursos } from '@/shared/config/recursos'
+import { useSessao } from '@/features/auth/session'
+import { cadastrarPropriedade, type PropriedadeCriada } from '@/features/properties/api'
+import { VERSAO_TERMO } from '@/features/properties/model'
 
 export type PropertyRole = 'owner' | 'manager'
 
@@ -128,7 +133,7 @@ export function DeclarationTerm({
       }
     >
       <div className="declaration-term">
-        <span>Versão 1.0 · 18/11/2026</span>
+        <span>Versão {VERSAO_TERMO} · 18/11/2026</span>
         {acceptedAt && <span>Aceito em {acceptedAt}</span>}
         <p>
           Ao aceitar, você declara que as informações fornecidas são verdadeiras e que{' '}
@@ -159,13 +164,11 @@ type RegistrationErrors = Partial<
   Record<'name' | 'municipality' | 'uf' | 'area' | 'owner' | 'term', string>
 >
 
-export type RegisteredProperty = {
-  name: string
-  municipality: string
-  uf: string
-  area: string
-  role: PropertyRole
-  owner: string
+/** "1.234,5" → "1234.50" (decimal com ponto, como a API espera). */
+export function areaParaApi(area: string): string | null {
+  const texto = area.trim()
+  if (!texto) return null
+  return Number(texto.replace(/\./g, '').replace(',', '.')).toFixed(2)
 }
 
 export default function PropertyRegistration({
@@ -174,17 +177,15 @@ export default function PropertyRegistration({
   onSuccess,
   step: controlledStep,
   onStepChange,
-  simulateFailure = false,
 }: {
   open: boolean
   onClose: () => void
-  onSuccess: (property: RegisteredProperty) => void
+  onSuccess: (property: PropriedadeCriada) => void
   /** Passo atual quando controlado pela rota (?passo=). */
   step?: number
   onStepChange?: (step: number) => void
-  /** Demonstração do estado de erro (?cadastro=erro): a primeira tentativa falha. */
-  simulateFailure?: boolean
 }) {
+  const userName = useSessao().usuario?.nome ?? ''
   const [localStep, setLocalStep] = useState(1)
   const step = controlledStep ?? localStep
   const setStep = (next: number) => {
@@ -192,7 +193,7 @@ export default function PropertyRegistration({
     onStepChange?.(next)
   }
   const [role, setRole] = useState<PropertyRole>('owner')
-  const [ownerName, setOwnerName] = useState(user.name)
+  const [ownerName, setOwnerName] = useState(userName)
   const [accepted, setAccepted] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [termOpen, setTermOpen] = useState(false)
@@ -203,20 +204,19 @@ export default function PropertyRegistration({
   const [uf, setUf] = useState('MG')
   const [area, setArea] = useState('')
   const [saving, setSaving] = useState(false)
-  const [failed, setFailed] = useState(false)
-  const [failuresLeft, setFailuresLeft] = useState(simulateFailure ? 1 : 0)
+  const [failed, setFailed] = useState<string | null>(null)
 
   useEffect(() => {
     if (!open) return
     setSubmitted(false)
     setSaving(false)
-    setFailed(false)
-    setFailuresLeft(simulateFailure ? 1 : 0)
-  }, [open, simulateFailure])
+    setFailed(null)
+  }, [open])
 
   function chooseRole(next: PropertyRole) {
     setRole(next)
-    setOwnerName(next === 'owner' ? user.name : '')
+    // RN35: para quem declara ser proprietário, o titular vem com o próprio nome (editável).
+    setOwnerName(next === 'owner' ? userName : '')
     setAccepted(false)
   }
 
@@ -231,10 +231,11 @@ export default function PropertyRegistration({
   if (!accepted) errors.term = 'Para continuar, aceite o termo.'
   const show = (key: keyof RegistrationErrors) => (submitted ? errors[key] : undefined)
 
-  function submit(event: React.FormEvent) {
+  async function submit(event: React.FormEvent) {
     event.preventDefault()
+    if (saving) return
     setSubmitted(true)
-    setFailed(false)
+    setFailed(null)
     if (errors.name || errors.municipality || errors.uf || errors.area) {
       setStep(1)
       return
@@ -247,17 +248,28 @@ export default function PropertyRegistration({
       setStep(3)
       return
     }
-    // TODO(integração): enviar propriedade, arquivos e aceite do termo para a API.
     setSaving(true)
-    window.setTimeout(() => {
+    try {
+      const created = await cadastrarPropriedade({
+        nome: name.trim(),
+        municipio: municipality.trim(),
+        uf,
+        area_hectares: areaParaApi(area),
+        titular_nome: ownerName.trim(),
+        papel: role === 'owner' ? 'proprietario' : 'gestor',
+        aceite_termo: true,
+        versao_termo: VERSAO_TERMO,
+      })
+      onSuccess(created)
+    } catch (error) {
+      setFailed(
+        error instanceof ApiError && error.status === 422
+          ? error.message
+          : 'Sua internet pode ter oscilado. Nada foi perdido: tente de novo.',
+      )
+    } finally {
       setSaving(false)
-      if (failuresLeft > 0) {
-        setFailuresLeft(failuresLeft - 1)
-        setFailed(true)
-        return
-      }
-      onSuccess({ name: name.trim(), municipality: municipality.trim(), uf, area, role, owner: ownerName.trim() })
-    }, 700)
+    }
   }
 
   const submitButton = (
@@ -297,7 +309,7 @@ export default function PropertyRegistration({
           {failed && (
             <div className="inline-alert" role="alert">
               <strong>Não conseguimos cadastrar agora.</strong>
-              <span>Sua internet pode ter oscilado. Nada foi perdido: tente de novo.</span>
+              <span>{failed}</span>
             </div>
           )}
 
@@ -356,6 +368,7 @@ export default function PropertyRegistration({
               error={show('area')}
               suffix={<span className="field-suffix">ha</span>}
             />
+            {recursos.logoECapaDaPropriedade && (
             <div className="property-media-grid">
               <div className="media-upload">
                 <span>Logo (opcional)</span>
@@ -412,6 +425,7 @@ export default function PropertyRegistration({
                 </div>
               </div>
             </div>
+            )}
           </section>
 
           <section
@@ -514,7 +528,7 @@ export default function PropertyRegistration({
             <div className="term-summary">
               <ShieldCheck aria-hidden="true" />
               <p>
-                <strong>Versão 1.0 · 18/11/2026</strong>
+                <strong>Versão {VERSAO_TERMO} · 18/11/2026</strong>
                 <small>
                   Autodeclaração, responsabilidade pelas informações e uso dos dados conforme a
                   LGPD.

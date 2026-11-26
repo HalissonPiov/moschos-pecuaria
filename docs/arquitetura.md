@@ -88,7 +88,7 @@ As funções do protótipo que o modelo de dados v2 não sustenta (M1 a M7, por 
 
 ## Fronteira HTTP
 
-A URL da API vem de VITE_API_URL no arquivo frontend/.env. Localmente, o valor padrão é http://localhost:8000/api/v1. Os endpoints GET /health (API no ar) e GET /health/db (conexão com o PostgreSQL) já existem para validar a comunicação.
+A URL da API vem de VITE_API_URL no arquivo frontend/.env, com o padrão relativo /api/v1. No desenvolvimento, o Vite encaminha /api para http://localhost:8000 (proxy), e na implantação um proxy reverso faz o mesmo: front-end e API ficam na mesma origem, como exige o cookie de renovação SameSite=Strict (ADR 0001). Os endpoints GET /health (API no ar) e GET /health/db (conexão com o PostgreSQL) já existem para validar a comunicação.
 
 Os recursos devem respeitar a propriedade como fronteira:
 

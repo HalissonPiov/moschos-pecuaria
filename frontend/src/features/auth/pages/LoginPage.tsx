@@ -1,16 +1,14 @@
 /*
- * Tela de acesso (Etapa 1.1).
- * Parâmetros de demonstração na URL:
+ * Tela de acesso (RF01, RF02, ADR 0001).
+ * Parâmetros na URL:
  *   ?modo=cadastro            abre a aba "Criar conta"
- *   ?erro=login               mostra o erro de login
  *   ?saiu=1                   toast "Você saiu da sua conta."
- *   ?propriedades=1           ao entrar, vai direto ao Resumo (usuário com uma só propriedade)
- *   ?tela=confirm | confirm-expired | confirmed | recover | recover-sent | new-password | reset-invalid
- *                             abre direto cada tela do fluxo (link de confirmação expirado, link inválido...)
+ *   ?tela=confirm | confirm-expired | confirmed   confirmação de e-mail (oculta: divergência M1)
+ *   ?tela=recover | recover-sent | new-password | reset-invalid   recuperação de senha (oculta até o C4)
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router'
-import { Eye, EyeOff, KeyRound, Link2Off, MailCheck, ShieldCheck } from 'lucide-react'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
+import { Eye, EyeOff, KeyRound, Link2Off, LoaderCircle, MailCheck, ShieldCheck } from 'lucide-react'
 import gsap from 'gsap'
 import { Brand, Button, Field, Toast } from '@/shared/ui/UI'
 import {
@@ -18,7 +16,11 @@ import {
   PasswordStrength,
   validateNewPassword,
 } from '@/features/properties/components/PropertyRegistration'
-import { user } from '@/shared/demo/data'
+import { ApiError } from '@/shared/api/client'
+import { recursos } from '@/shared/config/recursos'
+import { criarConta, entrar } from '@/features/auth/api'
+import { useSessao } from '@/features/auth/session'
+import { listarPropriedades } from '@/features/properties/api'
 
 type LoginView =
   | 'form'
@@ -31,27 +33,53 @@ type LoginView =
   | 'reset-invalid'
 type AuthField = 'nome' | 'email' | 'senha' | 'confirmar' | 'recover' | 'novaSenha' | 'novaConfirmar'
 type AuthErrors = Partial<Record<AuthField, string>>
+type LoginAlert = { title: string; text: string }
+
+const CONFIRMATION_VIEWS: LoginView[] = ['confirm', 'confirm-expired', 'confirmed']
+const RECOVERY_VIEWS: LoginView[] = ['recover', 'recover-sent', 'new-password', 'reset-invalid']
+
+/** Telas de fluxos ainda ocultos (M1 e C4) voltam para o formulário. */
+function allowedView(view: LoginView): LoginView {
+  if (CONFIRMATION_VIEWS.includes(view) && !recursos.confirmacaoDeEmail) return 'form'
+  if (RECOVERY_VIEWS.includes(view) && !recursos.recuperacaoDeSenha) return 'form'
+  return view
+}
 
 export default function LoginPage() {
   const [params, setParams] = useSearchParams()
-  const initialView = (params.get('tela') as LoginView) || 'form'
+  const initialView = allowedView((params.get('tela') as LoginView) || 'form')
   const [view, setView] = useState<LoginView>(initialView)
   const [tab, setTab] = useState<'login' | 'signup'>(
     params.get('modo') === 'cadastro' ? 'signup' : 'login',
   )
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [errors, setErrors] = useState<AuthErrors>({})
-  const [loginError, setLoginError] = useState(params.get('erro') === 'login')
+  const [loginError, setLoginError] = useState<LoginAlert | null>(null)
+  const [sending, setSending] = useState(false)
   const [countdown, setCountdown] = useState(42)
   const [password, setPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
-  const [sentTo, setSentTo] = useState(user.email)
-  const [toast, setToast] = useState<string | null>(
-    params.get('saiu') === '1' ? 'Você saiu da sua conta.' : null,
-  )
+  const [sentTo, setSentTo] = useState('')
+  const [toast, setToast] = useState<string | null>(null)
   const brandRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
+  const location = useLocation()
+  const sessao = useSessao()
+  const submittedRef = useRef(false)
+
+  // "Sair" chega aqui com ?saiu=1, às vezes depois de a tela já estar aberta.
+  const loggedOut = params.get('saiu') === '1'
+  useEffect(() => {
+    if (loggedOut) setToast('Você saiu da sua conta.')
+  }, [loggedOut])
+
+  // Quem já tem sessão e abre /entrar vai para as propriedades.
+  useEffect(() => {
+    if (sessao.status === 'autenticado' && !submittedRef.current && !loggedOut) {
+      navigate('/propriedades', { replace: true })
+    }
+  }, [sessao.status, navigate, loggedOut])
 
   useLayoutEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
@@ -97,7 +125,7 @@ export default function LoginPage() {
   function changeTab(next: 'login' | 'signup') {
     setTab(next)
     setErrors({})
-    setLoginError(false)
+    setLoginError(null)
     setParams(next === 'signup' ? { modo: 'cadastro' } : {})
   }
 
@@ -107,8 +135,39 @@ export default function LoginPage() {
     setErrors((current) => ({ ...current, [field]: undefined }))
   }
 
-  function submit(event: React.FormEvent<HTMLFormElement>) {
+  /** Depois de entrar: volta para onde ia, ou abre a única propriedade (RF01). */
+  async function goAfterLogin() {
+    const from = (location.state as { de?: string } | null)?.de
+    if (from) {
+      navigate(from, { replace: true })
+      return
+    }
+    try {
+      const list = await listarPropriedades()
+      navigate(list.length === 1 ? `/fazenda/${list[0].id}/resumo` : '/propriedades', {
+        replace: true,
+      })
+    } catch {
+      navigate('/propriedades', { replace: true })
+    }
+  }
+
+  function connectionAlert(error: unknown): LoginAlert {
+    const status = error instanceof ApiError ? error.status : 0
+    // Só a recusa de dados traz uma mensagem escrita para o usuário; o resto (404, 500...)
+    // vem do servidor em inglês e não ajuda quem está no campo.
+    const text =
+      status === 0
+        ? 'Sem conexão com o servidor. Confira a internet e tente de novo.'
+        : [400, 409, 422].includes(status)
+          ? (error as ApiError).message
+          : 'O servidor não respondeu como esperado. Tente de novo em instantes.'
+    return { title: 'Não foi possível concluir agora.', text }
+  }
+
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (sending) return
     const data = new FormData(event.currentTarget)
     const nome = String(data.get('nome') || '').trim()
     const email = String(data.get('email') || '').trim()
@@ -126,18 +185,51 @@ export default function LoginPage() {
     if (tab === 'login') {
       setErrors(nextErrors)
       if (Object.keys(nextErrors).length > 0) return
-      setLoginError(false)
-      const activeProperties = Number(params.get('propriedades') || 3)
-      navigate(activeProperties === 1 ? '/fazenda/baixada/resumo' : '/propriedades')
+      setLoginError(null)
+      setSending(true)
+      submittedRef.current = true
+      try {
+        sessao.iniciar(await entrar({ email, senha }))
+        await goAfterLogin()
+      } catch (error) {
+        submittedRef.current = false
+        setLoginError(
+          error instanceof ApiError && error.status === 401
+            ? { title: 'Não foi possível entrar.', text: 'Confira o e-mail e a senha e tente novamente.' }
+            : connectionAlert(error),
+        )
+      } finally {
+        setSending(false)
+      }
     } else {
       if (!nome) nextErrors.nome = 'Informe seu nome.'
       const passwordErrors = validateNewPassword(senha, confirmar)
       if (passwordErrors.confirmar) nextErrors.confirmar = passwordErrors.confirmar
       setErrors(nextErrors)
       if (Object.keys(nextErrors).length > 0) return
-      setSentTo(email)
-      setCountdown(42)
-      changeView('confirm')
+      setLoginError(null)
+      setSending(true)
+      submittedRef.current = true
+      try {
+        sessao.iniciar(await criarConta({ nome, email, senha }))
+        if (recursos.confirmacaoDeEmail) {
+          setSentTo(email)
+          setCountdown(42)
+          changeView('confirm')
+        } else {
+          // Sem confirmação de e-mail na v1.0 (M1): a conta já nasce ativa.
+          navigate('/propriedades', { replace: true })
+        }
+      } catch (error) {
+        submittedRef.current = false
+        if (error instanceof ApiError && error.status === 409) {
+          setErrors({ email: error.message })
+        } else {
+          setLoginError(connectionAlert(error))
+        }
+      } finally {
+        setSending(false)
+      }
     }
   }
 
@@ -195,8 +287,8 @@ export default function LoginPage() {
               </div>
               {loginError && (
                 <div className="inline-alert" role="alert">
-                  <strong>Não foi possível entrar.</strong>
-                  <span>Confira o e-mail e a senha e tente novamente.</span>
+                  <strong>{loginError.title}</strong>
+                  <span>{loginError.text}</span>
                 </div>
               )}
               <form className="form-stack" onSubmit={submit} onInput={clearFieldError} noValidate>
@@ -250,7 +342,7 @@ export default function LoginPage() {
                     />
                   </>
                 )}
-                {tab === 'login' && (
+                {tab === 'login' && recursos.recuperacaoDeSenha && (
                   <button
                     type="button"
                     className="text-link form-link"
@@ -259,7 +351,20 @@ export default function LoginPage() {
                     Esqueci minha senha
                   </button>
                 )}
-                <Button type="submit">{tab === 'login' ? 'Entrar' : 'Criar minha conta'}</Button>
+                <Button
+                  type="submit"
+                  disabled={sending}
+                  aria-busy={sending}
+                  icon={sending ? <LoaderCircle className="spin" aria-hidden="true" /> : undefined}
+                >
+                  {sending
+                    ? tab === 'login'
+                      ? 'Entrando…'
+                      : 'Criando sua conta…'
+                    : tab === 'login'
+                      ? 'Entrar'
+                      : 'Criar minha conta'}
+                </Button>
               </form>
               <p className="terms">
                 Ao continuar, você aceita os <Link to="/termos">Termos de uso</Link> e a{' '}

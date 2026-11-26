@@ -12,35 +12,40 @@ import SalesPage from '@/features/sales/pages/SalesPage'
 import MarketPage from '@/features/market/pages/MarketPage'
 import SettingsPage from '@/features/settings/pages/SettingsPage'
 import InvitePage from '@/features/properties/pages/InvitePage'
+import RequireAuth from '@/features/auth/components/RequireAuth'
+import PropriedadeAtivaRoute from '@/features/properties/components/PropriedadeAtivaRoute'
 
 export const routes: RouteObject[] = [
   { path: '/', element: <Navigate to="/entrar" replace /> },
   { path: '/entrar', Component: LoginPage },
-  { path: '/propriedades', Component: PropertiesPage },
+  // O convite é aceito com ou sem conta (A5); a tela ainda usa dados de demonstração.
   { path: '/convite/:token', Component: InvitePage },
-  { path: '/fazenda/:propriedadeId/resumo', Component: DashboardPage },
-  { path: '/fazenda/:propriedadeId/rebanho', Component: HerdPage },
-  { path: '/fazenda/:propriedadeId/rebanho/novo', Component: AnimalFormPage },
   {
-    path: '/fazenda/:propriedadeId/rebanho/:registroId',
-    Component: LotDetailPage,
+    // Rotas privadas (RF01): sem sessão, vão para /entrar.
+    Component: RequireAuth,
+    children: [
+      { path: '/propriedades', Component: PropertiesPage },
+      {
+        // Propriedade ativa na rota, conferida na API (RF33, RNF05, ADR 0002).
+        path: '/fazenda/:propriedadeId',
+        Component: PropriedadeAtivaRoute,
+        children: [
+          { index: true, element: <Navigate to="resumo" replace /> },
+          { path: 'resumo', Component: DashboardPage },
+          { path: 'rebanho', Component: HerdPage },
+          { path: 'rebanho/novo', Component: AnimalFormPage },
+          { path: 'rebanho/:registroId', Component: LotDetailPage },
+          { path: 'rebanho/:registroId/editar', Component: AnimalFormPage },
+          { path: 'rebanho/:registroId/painel', Component: FinancialPage },
+          { path: 'custos', Component: CostsPage },
+          { path: 'custos/nova-compra', Component: PurchasePage },
+          { path: 'vendas', Component: SalesPage },
+          { path: 'mercado', Component: MarketPage },
+          { path: 'configuracoes', Component: SettingsPage },
+        ],
+      },
+    ],
   },
-  {
-    path: '/fazenda/:propriedadeId/rebanho/:registroId/editar',
-    Component: AnimalFormPage,
-  },
-  {
-    path: '/fazenda/:propriedadeId/rebanho/:registroId/painel',
-    Component: FinancialPage,
-  },
-  { path: '/fazenda/:propriedadeId/custos', Component: CostsPage },
-  {
-    path: '/fazenda/:propriedadeId/custos/nova-compra',
-    Component: PurchasePage,
-  },
-  { path: '/fazenda/:propriedadeId/vendas', Component: SalesPage },
-  { path: '/fazenda/:propriedadeId/mercado', Component: MarketPage },
-  { path: '/fazenda/:propriedadeId/configuracoes', Component: SettingsPage },
   { path: '*', element: <Navigate to="/entrar" replace /> },
 ]
 

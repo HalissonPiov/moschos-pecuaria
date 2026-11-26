@@ -459,3 +459,12 @@ ul.member-list {
     grid-column: 3;
   }
 }
+
+/* Tela inteira enquanto a sessão ou a propriedade ativa são conferidas (pacote 3). */
+.auth-check {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 16px;
+  place-items: center;
+}

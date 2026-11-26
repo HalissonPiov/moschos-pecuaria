@@ -204,7 +204,7 @@ A regra de integração é:
 | Tela | Integrada no núcleo (pacote) | Oculta até |
 | --- | --- | --- |
 | Entrar e Criar conta | Login, cadastro e "Sair" (3). O cadastro segue direto para "Minhas propriedades". | Confirmação de e-mail: M1. "Esqueci minha senha": C4. |
-| Minhas propriedades e cadastro | Lista, cadastro com declaração e termo, e seletor de propriedade ativa (3) | Logo e capa: M2. "Mostrar inativas": A5. |
+| Minhas propriedades e cadastro | Lista, cadastro com declaração e termo, e seletor de propriedade ativa (3) | Logo e capa: M2. "Mostrar inativas", alterar titular e inativar: A5. Editar dados: sem requisito. |
 | Convite | — | A5 |
 | Resumo | Cabeças, lotes por status, custos do mês, custo acumulado, margem, custo por categoria e comparativo com a cotação (9) | Vencimentos e "Marcar como pago": A2. Previstos e "A confirmar": A6. Evolução do custo mensal: sem requisito. |
 | Rebanho, novo registro e edição | Lista com saldo e filtros por status e modo; registro com criação dos animais; edição e inativação (4) | Pastos e filtro por pasto: A3. |
@@ -213,15 +213,16 @@ A regra de integração é:
 | Registrar compra | Nota com foto e lançamentos (5 e 6) | Sugestão pelo fornecedor: A12. Rascunho: A14. |
 | Vendas | Registrar venda e lista de vendas (7) | Editar e estornar: A1. Simulador: A10. Ofertas: C2. |
 | Mercado | Registrar cotação e cotação de referência (8) | Gráfico de cotações: A11. O mapa continua visível, marcado como ilustrativo. |
-| Configurações | "Sair" (3); propriedade ativa com titular e termo (3); categorias em Cadastros (5) | Parâmetros: A2. Pastos: A3. Membros, convites, inativar propriedade e alterar titular: A5. Relatórios: C3. Telefone: M7. |
+| Configurações | "Sair" (3); propriedade ativa com titular e termo (3); categorias em Cadastros (5) | Parâmetros: A2. Pastos: A3. Membros, convites, inativar propriedade e alterar titular: A5. Relatórios: C3. Telefone: M7. Editar perfil e editar dados da propriedade: sem requisito. |
 
 **Funções do V2 sem requisito.** São elas:
 
 - troca de senha;
+- edição do perfil (nome e e-mail) e dos dados da propriedade;
 - cadastros de fornecedores e de compradores, com renomear, inativar e excluir;
 - evolução do custo mensal no painel.
 
-O fornecedor e o comprador continuam sendo escolhidos ou criados no próprio lançamento e na venda. As três funções ficam ocultas na v1.0 e só entram pelo controle de mudanças (seção 8).
+O fornecedor e o comprador continuam sendo escolhidos ou criados no próprio lançamento e na venda. Essas funções ficam ocultas na v1.0 e só entram pelo controle de mudanças (seção 8).
 
 ## 6. Critério de aceitação do núcleo
 
