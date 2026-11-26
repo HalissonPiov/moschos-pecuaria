@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Capa do README</title>
+<!-- Fonte das artes do README. Cada painel tem 1600x900 e é exportado por render.sh (capa.html#p1 ... #p6). -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#5f845e; --green-dark:#3f5f3f; --green-soft:#e4ece2;
+    --navy:#030029; --navy-2:#0d0a3a; --sand:#a7875b; --sand-soft:#efe4d2;
+    --cream:#f6f1e7; --paper:#fffdf8; --line:#d9d4c8; --muted:#696878;
+    --danger:#b4432f; --amber:#c98a1b;
+    --title:'Barlow Semi Condensed',sans-serif; --body:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#111}
+  body{font-family:var(--body);color:var(--navy);-webkit-font-smoothing:antialiased}
+  .panel{width:1600px;height:900px;position:relative;overflow:hidden;display:none}
+  .panel.on{display:block}
+  body.all .panel{display:block;margin-bottom:24px}
+  h1,h2,h3{font-family:var(--title);font-weight:700;letter-spacing:-.5px;line-height:.98}
+  .eyebrow{font-family:var(--body);font-size:15px;font-weight:700;letter-spacing:3px;text-transform:uppercase}
+  .brand{position:absolute;display:flex;align-items:center;gap:14px}
+  .brand img.h{height:40px}
+  .brand img.w{height:30px}
+  ul.list{list-style:none;display:grid;gap:18px}
+  ul.list li{display:flex;gap:16px;align-items:flex-start;font-size:22px;line-height:1.35}
+  ul.list li b{font-weight:700}
+  .tick{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;margin-top:1px}
+  .tick svg{width:16px;height:16px}
+
+  /* ---------- telas (mockups) ---------- */
+  .phone{position:absolute;width:330px;height:690px;border-radius:46px;background:#0b0820;padding:12px;
+    box-shadow:0 40px 80px rgba(3,0,41,.45),0 0 0 2px rgba(255,255,255,.08) inset}
+  .phone .scr{width:100%;height:100%;border-radius:36px;background:var(--cream);overflow:hidden;position:relative}
+  .phone .notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:96px;height:26px;border-radius:14px;background:#0b0820;z-index:3}
+  .app-top{height:92px;background:var(--navy);color:#fff;padding:46px 18px 0;display:flex;align-items:center;justify-content:space-between}
+  .app-top .t{font-family:var(--title);font-size:20px;font-weight:700}
+  .app-top .p{font-size:11px;color:#c9c4e0}
+  .chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;font-size:12px;font-weight:600;padding:5px 11px;white-space:nowrap}
+  .st-ready{background:#e4ece2;color:var(--green-dark)}
+  .st-prod{background:#efe4d2;color:#6e5430}
+  .st-part{background:#e3e1f0;color:#2b2670}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px}
+  .kpi .l{font-size:12px;color:var(--muted);font-weight:600}
+  .kpi .v{font-family:var(--title);font-weight:700;font-size:30px;margin-top:4px;color:var(--navy)}
+  .kpi .s{font-size:11.5px;margin-top:4px;font-weight:600}
+  .up{color:var(--green-dark)} .warn{color:var(--amber)} .bad{color:var(--danger)}
+
+  .browser{position:absolute;border-radius:18px;background:#fff;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.45)}
+  .browser .bar{height:40px;background:#ebe6db;display:flex;align-items:center;gap:8px;padding:0 16px}
+  .browser .bar i{width:12px;height:12px;border-radius:50%;background:#cfc8b8;display:block}
+  .browser .bar .url{margin-left:18px;flex:1;max-width:420px;height:24px;border-radius:8px;background:#fff;font-size:12px;color:var(--muted);display:flex;align-items:center;padding:0 12px}
+  .side{position:absolute;left:0;top:40px;bottom:0;width:190px;background:var(--navy);padding:22px 14px;color:#cfcbe6}
+  .side img{height:30px;margin:0 0 26px 8px}
+  .side a{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;padding:11px 12px;border-radius:10px;margin-bottom:4px}
+  .side a.on{background:var(--green);color:#fff}
+  .side a span{width:8px;height:8px;border-radius:2px;background:currentColor;opacity:.6}
+  .main{position:absolute;left:190px;right:0;top:40px;bottom:0;background:var(--cream);padding:24px 26px}
+  table{border-collapse:collapse;width:100%}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);text-align:left;font-weight:700;padding:0 10px 10px}
+  td{font-size:13.5px;padding:11px 10px;border-top:1px solid #ece7dc}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+
+  /* ---------- P1 capa ---------- */
+  #p1{background:var(--navy)}
+  #p1 .photo{position:absolute;inset:0;background:url(../../frontend/public/assets/fazenda-baixada-aerea.jpg) 62% 40%/cover}
+  #p1 .shade{position:absolute;inset:0;background:
+     linear-gradient(90deg,rgba(3,0,41,1) 0%,rgba(3,0,41,.96) 34%,rgba(3,0,41,.72) 52%,rgba(3,0,41,.25) 74%,rgba(3,0,41,.35) 100%),
+     linear-gradient(0deg,rgba(3,0,41,.7),rgba(3,0,41,0) 40%)}
+  #p1 .copy{position:absolute;left:96px;top:150px;width:780px;color:#fff}
+  #p1 .eyebrow{color:var(--sand)}
+  #p1 h1{font-size:104px;margin:26px 0 30px}
+  #p1 h1 em{font-style:normal;color:var(--sand)}
+  #p1 p.lead{font-size:26px;line-height:1.45;color:#dcd9ec;max-width:660px}
+  #p1 .tags{display:flex;gap:12px;flex-wrap:wrap;margin-top:40px}
+  #p1 .tags span{border:1.5px solid rgba(167,135,91,.7);color:#f1e7d6;border-radius:999px;padding:10px 18px;font-size:17px;font-weight:600;background:rgba(3,0,41,.35)}
+  #p1 .phone{right:120px;top:105px;transform:rotate(3deg)}
+
+  /* ---------- P2 problema ---------- */
+  #p2{background:var(--cream)}
+  #p2 .head{position:absolute;left:96px;top:80px;width:1420px}
+  #p2 .eyebrow{color:var(--danger)}
+  #p2 h2{font-size:72px;margin-top:20px}
+  #p2 h2 span{color:var(--green)}
+  #p2 .grid{position:absolute;left:96px;right:96px;top:310px;display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+  #p2 .pain{background:#fff;border:1px solid var(--line);border-radius:22px;padding:30px 28px;height:350px;position:relative}
+  #p2 .pain .ic{width:58px;height:58px;border-radius:16px;background:#f8e6e1;color:var(--danger);display:grid;place-items:center}
+  #p2 .pain .ic svg{width:30px;height:30px}
+  #p2 .pain h3{font-size:34px;margin:26px 0 14px}
+  #p2 .pain p{font-size:18.5px;line-height:1.45;color:#47465a}
+  #p2 .bottom{position:absolute;left:0;right:0;bottom:0;height:150px;background:var(--navy);color:#fff;display:flex;align-items:center;padding:0 96px;gap:40px}
+  #p2 .bottom .big{font-family:var(--title);font-weight:800;font-size:92px;color:var(--sand);line-height:1}
+  #p2 .bottom .big small{font-size:40px}
+  #p2 .bottom p{font-size:26px;line-height:1.35;max-width:1050px}
+  #p2 .bottom p b{color:var(--sand)}
+
+  /* ---------- P3 painel ---------- */
+  #p3{background:linear-gradient(135deg,#3f5f3f 0%,#2f4a30 100%)}
+  #p3 .copy{position:absolute;left:80px;top:150px;width:440px;color:#fff}
+  #p3 .eyebrow{color:#e2cfa9}
+  #p3 h2{font-size:68px;margin:22px 0 40px}
+  #p3 .tick{background:var(--sand);color:#fff}
+  #p3 .browser{left:560px;top:120px;width:990px;height:660px}
+  #p3 td,#p3 th{white-space:nowrap}
+  #p3 .side{width:170px}#p3 .main{left:170px;padding:22px 22px}
+  #p3 .kpi .v{font-size:26px}
+  #p3 .main .card div[style*="justify-content:space-between"]{white-space:nowrap;font-size:12.5px!important}
+  #p3 td{font-size:13px;padding:11px 8px}#p3 th{padding:0 8px 10px}
+
+  /* ---------- P4 custos ---------- */
+  #p4{background:var(--paper)}
+  #p4 .blob{position:absolute;left:-120px;top:-140px;width:900px;height:1180px;border-radius:50%;background:var(--green-soft)}
+  #p4 .phone.a{left:130px;top:105px;transform:rotate(-4deg)}
+  #p4 .phone.b{left:430px;top:150px;transform:rotate(4deg)}
+  #p4 .copy{position:absolute;left:930px;top:130px;width:580px}
+  #p4 .eyebrow{color:var(--green)}
+  #p4 h2{font-size:72px;margin:22px 0 40px}
+  #p4 .tick{background:var(--green);color:#fff}
+  .receipt{margin:16px;background:#fbfaf6;border-radius:6px;padding:16px 16px 22px;box-shadow:0 6px 18px rgba(0,0,0,.18);transform:rotate(-1.5deg);font-family:'Courier New',monospace;color:#3a3a3a}
+  .receipt .rl{height:7px;background:#d9d6cd;border-radius:3px;margin:8px 0}
+  .field{margin:0 16px 10px}
+  .field label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px}
+  .field div{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:11px 12px;font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+  .field div.sug{border-color:var(--green);background:#f4f8f3}
+  .btn{margin:14px 16px 0;height:50px;border-radius:14px;background:var(--green);color:#fff;font-weight:700;display:grid;place-items:center;font-size:15px}
+
+  /* ---------- P5 mercado ---------- */
+  #p5{background:var(--navy)}
+  #p5 .glow{position:absolute;right:-200px;top:-200px;width:900px;height:900px;border-radius:50%;background:radial-gradient(circle,rgba(95,132,94,.35),rgba(3,0,41,0) 65%)}
+  #p5 .copy{position:absolute;left:96px;top:120px;width:520px;color:#fff}
+  #p5 .eyebrow{color:var(--sand)}
+  #p5 h2{font-size:76px;margin:22px 0 40px}
+  #p5 h2 em{font-style:normal;color:var(--sand)}
+  #p5 .tick{background:var(--green);color:#fff}
+  #p5 ul.list li{color:#e6e4f2}
+  #p5 .chart{position:absolute;left:690px;top:90px;width:820px;height:470px;background:#fff;border-radius:24px;padding:26px 30px}
+  #p5 .chart .hd{display:flex;justify-content:space-between;align-items:flex-start}
+  #p5 .chart h3{font-size:30px}
+  #p5 .chart .sub{font-size:13px;color:var(--muted);margin-top:4px}
+  #p5 .legend{display:flex;gap:18px;font-size:13px;font-weight:600;color:#47465a}
+  #p5 .legend i{display:inline-block;width:18px;height:4px;border-radius:2px;margin-right:7px;vertical-align:middle}
+  #p5 .sim{position:absolute;left:690px;top:590px;width:820px;height:220px;display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:18px}
+  #p5 .sim .card{border:none;border-radius:22px;padding:24px 24px}
+  #p5 .sim .l{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  #p5 .sim .v{font-family:var(--title);font-weight:700;font-size:46px;margin-top:10px}
+  #p5 .sim .s{font-size:14px;color:#47465a;margin-top:8px;line-height:1.4}
+  #p5 .sim .hl{background:var(--green);color:#fff}
+  #p5 .sim .hl .l,#p5 .sim .hl .s{color:#e6efe4}
+  .slider{margin-top:14px}
+  .slider .tr{height:8px;border-radius:4px;background:#e4e0d6;position:relative}
+  .slider .tr b{position:absolute;left:0;top:0;bottom:0;width:76%;background:var(--sand);border-radius:4px}
+  .slider .tr i{position:absolute;left:76%;top:50%;width:22px;height:22px;border-radius:50%;background:#fff;border:4px solid var(--sand);transform:translate(-50%,-50%)}
+  .slider .row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:10px;font-weight:600}
+
+  /* ---------- P6 passos ---------- */
+  #p6{background:var(--green)}
+  #p6 .mark{position:absolute;right:96px;top:70px;width:300px;opacity:.16}
+  #p6 .head{position:absolute;left:96px;top:96px;color:#fff;width:1100px}
+  #p6 .eyebrow{color:#f1e3c8}
+  #p6 h2{font-size:84px;margin-top:20px}
+  #p6 .steps{position:absolute;left:96px;right:96px;top:360px;display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+  #p6 .step{background:var(--paper);border-radius:26px;padding:34px 34px;height:310px}
+  #p6 .step .n{font-family:var(--title);font-weight:800;font-size:22px;color:#fff;background:var(--navy);width:50px;height:50px;border-radius:14px;display:grid;place-items:center}
+  #p6 .step h3{font-size:48px;margin:26px 0 14px;color:var(--navy)}
+  #p6 .step p{font-size:20px;line-height:1.45;color:#3e3d52}
+  #p6 .foot{position:absolute;left:96px;right:96px;bottom:60px;display:flex;align-items:center;justify-content:space-between;color:#fff}
+  #p6 .foot p{font-size:22px;font-weight:600}
+  #p6 .foot .brand{position:static}
+
+  /* ---------- P7 investimento x retorno ---------- */
+  #p7{background:var(--paper)}
+  #p7 .copy{position:absolute;left:96px;top:70px;width:720px}
+  #p7 .eyebrow{color:var(--sand)}
+  #p7 h2{font-size:66px;margin:18px 0 20px}
+  #p7 h2 span{color:var(--green)}
+  #p7 .lead{font-size:21px;line-height:1.45;color:#3e3d52}
+  #p7 .cats{position:absolute;left:96px;top:420px;width:720px;padding:24px 28px 18px;border-radius:24px}
+  #p7 .cats .hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  #p7 .cats .hd b{font-size:16px}
+  #p7 .cats .hd span{font-size:13px;color:var(--muted);font-weight:600}
+  #p7 .row{display:grid;grid-template-columns:16px 250px 1fr 104px;gap:14px;align-items:center;padding:10px 0;border-top:1px solid #efeae0}
+  #p7 .row .dot{width:16px;height:16px;border-radius:5px}
+  #p7 .row .nm{font-size:16px;font-weight:700;line-height:1.2}
+  #p7 .row .nm small{display:block;font-size:12.5px;color:var(--muted);font-weight:500;margin-top:2px}
+  #p7 .row .bar{height:10px;border-radius:5px;background:#efeae0;position:relative}
+  #p7 .row .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
+  #p7 .row .val{text-align:right;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+  #p7 .row .val small{display:block;font-size:12px;color:var(--muted);font-weight:600}
+  #p7 .row.tot{border-top:2px solid var(--navy);grid-template-columns:1fr auto}
+  #p7 .roi{position:absolute;left:880px;top:70px;width:624px;height:760px;background:var(--navy);border-radius:28px;padding:34px 38px;color:#fff}
+  #p7 .roi h3{font-size:36px}
+  #p7 .roi .sub{font-size:15px;color:#bdb9d6;margin-top:6px}
+  #p7 .tog{position:absolute;right:38px;top:38px;display:flex;background:#1a1745;border-radius:999px;padding:4px}
+  #p7 .tog span{font-size:13px;font-weight:700;padding:8px 14px;border-radius:999px;color:#bdb9d6}
+  #p7 .tog span.on{background:#fff;color:var(--navy)}
+  #p7 .stage{position:absolute;left:38px;right:38px;top:150px;height:470px}
+  #p7 .col{position:absolute;bottom:56px;width:140px}
+  #p7 .col .seg{width:100%}
+  #p7 .col .lab{position:absolute;bottom:-50px;left:-40px;right:-40px;text-align:center;font-size:15px;font-weight:700}
+  #p7 .col .lab small{display:block;font-size:12.5px;color:#bdb9d6;font-weight:500}
+  #p7 .tag{position:absolute;font-family:var(--title);font-weight:700;font-size:30px;white-space:nowrap}
+  #p7 .tag small{display:block;font-family:var(--body);font-size:12.5px;font-weight:600;color:#bdb9d6}
+  #p7 .result{position:absolute;left:38px;right:38px;bottom:34px;background:var(--green);border-radius:20px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center}
+  #p7 .result .l{font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#e6efe4}
+  #p7 .result .v{font-family:var(--title);font-weight:700;font-size:44px}
+  #p7 .result p{font-size:14.5px;color:#eef4ec;text-align:right;line-height:1.4}
+</style>
+</head>
+<body>
+
+<!-- ======================= P1 · CAPA ======================= -->
+<section class="panel" id="p1">
+  <div class="photo"></div><div class="shade"></div>
+  <div class="brand" style="left:96px;top:58px"><img class="h" src="assets/cabeca-white.png" alt=""><img class="w" src="assets/marca-white.png" alt=""></div>
+  <div class="copy">
+    <div class="eyebrow">Pecuária de corte · rebanho e finanças</div>
+    <h1>Quanto custa cada boi do seu <em>pasto?</em></h1>
+    <p class="lead">Pare de vender no escuro. Registre o rebanho e cada gasto, e saiba o seu lucro <b style="color:#fff">antes</b> de fechar negócio.</p>
+    <div class="tags"><span>Custo por arroba</span><span>Ponto de equilíbrio</span><span>Margem líquida</span><span>Hora de vender</span></div>
+  </div>
+  <div class="phone"><div class="notch"></div><div class="scr">
+    <div class="app-top"><div><div class="p">Fazenda da Baixada</div><div class="t">Resumo</div></div><img src="assets/cabeca-white.png" style="height:24px" alt=""></div>
+    <div style="padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="card kpi" style="padding:12px"><div class="l">Cabeças</div><div class="v">148</div><div class="s up">4 lotes ativos</div></div>
+      <div class="card kpi" style="padding:12px"><div class="l">Margem est.</div><div class="v">19,6%</div><div class="s up">Garrotes 2024</div></div>
+    </div>
+    <div class="card" style="margin:0 14px;padding:14px">
+      <div style="font-size:12px;font-weight:700;color:var(--muted)">COTAÇÃO × SEU CUSTO (R$/@)</div>
+      <div style="display:flex;align-items:flex-end;gap:12px;margin-top:12px;height:150px">
+        <div style="flex:1;text-align:center"><div style="height:94px;background:var(--sand);border-radius:8px 8px 0 0"></div><div style="font-size:11px;margin-top:6px;font-weight:700">318,00<br><span style="color:var(--muted);font-weight:500">Cotação MG</span></div></div>
+        <div style="flex:1;text-align:center"><div style="height:75px;background:var(--green);border-radius:8px 8px 0 0"></div><div style="font-size:11px;margin-top:6px;font-weight:700">255,74<br><span style="color:var(--muted);font-weight:500">Equilíbrio</span></div></div>
+        <div style="flex:1;text-align:center"><div style="height:72px;background:#b9cdb6;border-radius:8px 8px 0 0"></div><div style="font-size:11px;margin-top:6px;font-weight:700">246,11<br><span style="color:var(--muted);font-weight:500">Custo/@</span></div></div>
+      </div>
+    </div>
+    <div class="card" style="margin:12px 14px;padding:12px 14px;display:flex;gap:10px;align-items:center;background:#e4ece2;border-color:#cbd9c9">
+      <div style="width:34px;height:34px;border-radius:10px;background:var(--green);display:grid;place-items:center;color:#fff;font-weight:800">↑</div>
+      <div style="font-size:12.5px;line-height:1.35"><b>Garrotes 2024 pronto para venda</b><br>Folga de R$ 62,26 por arroba</div>
+    </div>
+    <div style="margin:0 14px;font-size:12px;font-weight:700;color:var(--muted)">PRÓXIMOS VENCIMENTOS</div>
+    <div class="card" style="margin:8px 14px;padding:4px 14px">
+      <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:9px 0;border-bottom:1px solid #eee"><span>Sal mineral · 28/11</span><b>R$ 1.840</b></div>
+      <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:9px 0;border-bottom:1px solid #eee"><span>Vacina · 02/12</span><b>R$ 960</b></div>
+      <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:9px 0"><span>Arrendamento · 05/12</span><b>R$ 1.480</b></div>
+    </div>
+    <div style="position:absolute;left:0;right:0;bottom:0;height:64px;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;font-size:10.5px;font-weight:700;color:var(--muted)">
+      <span style="color:var(--green)">● Resumo</span><span>Rebanho</span><span>Custos</span><span>Mercado</span>
+    </div>
+  </div></div>
+</section>
+
+<!-- ======================= P2 · PROBLEMA ======================= -->
+<section class="panel" id="p2">
+  <div class="head">
+    <div class="eyebrow">O problema</div>
+    <h2>A conta da fazenda vive na memória.<br><span>E a memória não calcula lucro.</span></h2>
+  </div>
+  <div class="grid">
+    <div class="pain"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16v16H4z"/><path d="M8 4v16M4 9h4M4 14h4"/></svg></div>
+      <h3>O boleto chega antes do controle</h3><p>O gasto só aparece quando já é hora de pagar. Não dá para planejar o mês.</p></div>
+    <div class="pain"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2h9l3 3v17H6z"/><path d="M9 9h6M9 13h6M9 17h3"/></svg></div>
+      <h3>A nota de papel some na gaveta</h3><p>Ninguém lembra o que foi comprado nem para qual lote foi aquele gasto.</p></div>
+    <div class="pain"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5M12 16h.01"/></svg></div>
+      <h3>Ninguém sabe o custo por arroba</h3><p>Sem custo real por lote, não existe margem, nem lucro, nem prejuízo à vista.</p></div>
+    <div class="pain"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div>
+      <h3>A venda sai no olho</h3><p>Pela aparência do boi e pela cotação ouvida de alguém, sem cruzar com o custo.</p></div>
+  </div>
+  <div class="bottom">
+    <div class="big">2 a 3 <small>anos</small></div>
+    <p>É quanto dura o ciclo de um lote de corte. <b>Sem dados, você só descobre se teve lucro depois de vender</b>, quando já não dá para corrigir nada.</p>
+  </div>
+</section>
+
+<!-- ======================= P3 · PAINEL ======================= -->
+<section class="panel" id="p3">
+  <div class="copy">
+    <div class="eyebrow">Tela 1 · Resumo da fazenda</div>
+    <h2>Veja a fazenda inteira em uma tela.</h2>
+    <ul class="list">
+      <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span><span>Confira quantas cabeças estão <b>em produção</b> e <b>prontas para venda</b>.</span></li>
+      <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span><span>Acompanhe o <b>custo do mês</b> e a <b>margem estimada</b> de cada lote.</span></li>
+      <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span><span>Antecipe os <b>boletos que vão vencer</b>.</span></li>
+    </ul>
+  </div>
+  <div class="browser">
+    <div class="bar"><i></i><i></i><i></i><div class="url">/fazenda/baixada/resumo</div></div>
+    <div class="side">
+      <img src="assets/cabeca-white.png" alt="">
+      <a class="on"><span></span>Resumo</a><a><span></span>Rebanho</a><a><span></span>Custos</a><a><span></span>Vendas</a><a><span></span>Mercado</a><a><span></span>Configurações</a>
+    </div>
+    <div class="main">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:12px;color:var(--muted);font-weight:600">Fazenda da Baixada · novembro de 2026</div><div style="font-family:var(--title);font-size:32px;font-weight:700">Resumo</div></div>
+        <div class="chip" style="background:var(--navy);color:#fff;font-size:13px;padding:9px 14px">+ Nova compra</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px">
+        <div class="card kpi" style="padding:16px"><div class="l">Cabeças em estoque</div><div class="v">148</div><div class="s up">32 prontas para venda</div></div>
+        <div class="card kpi" style="padding:16px"><div class="l">Custos do mês</div><div class="v">R$ 12.430</div><div class="s warn">+8% sobre outubro</div></div>
+        <div class="card kpi" style="padding:16px"><div class="l">Margem estimada</div><div class="v">19,6%</div><div class="s up">Garrotes 2024</div></div>
+        <div class="card kpi" style="padding:16px"><div class="l">A pagar em 10 dias</div><div class="v">R$ 4.280</div><div class="s bad">3 boletos</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:14px;margin-top:14px">
+        <div class="card" style="padding:16px 8px 6px">
+          <div style="font-weight:700;font-size:14px;margin:0 10px 12px">Custo acumulado por lote</div>
+          <table>
+            <tr><th>Lote</th><th class="n">Cab.</th><th>Status</th><th class="n">Acumulado</th><th class="n">Custo/@</th></tr>
+            <tr><td><b>Garrotes 2024</b></td><td class="n">32</td><td><span class="chip st-ready">Pronto para venda</span></td><td class="n">R$ 141.760</td><td class="n"><b>R$ 246,11</b></td></tr>
+            <tr><td><b>Bois Nelore 2023</b></td><td class="n">23</td><td><span class="chip st-part">Parc. vendido</span></td><td class="n">R$ 88.900</td><td class="n"><b>R$ 251,30</b></td></tr>
+            <tr><td><b>Novilhas 2025</b></td><td class="n">41</td><td><span class="chip st-prod">Em produção</span></td><td class="n">R$ 96.320</td><td class="n">R$ 212,80</td></tr>
+            <tr><td><b>Bezerros 2026</b></td><td class="n">52</td><td><span class="chip st-prod">Em produção</span></td><td class="n">R$ 38.450</td><td class="n" style="color:var(--muted)">em cria</td></tr>
+          </table>
+        </div>
+        <div style="display:grid;gap:14px">
+          <div class="card" style="padding:16px">
+            <div style="font-weight:700;font-size:14px">Custos por mês</div>
+            <div id="bars" style="display:flex;align-items:flex-end;gap:9px;height:96px;margin-top:12px"></div>
+            <div id="barl" style="display:flex;gap:9px;font-size:10.5px;color:var(--muted);margin-top:6px;font-weight:600"></div>
+          </div>
+          <div class="card" style="padding:14px 16px">
+            <div style="font-weight:700;font-size:14px;margin-bottom:4px">Próximos vencimentos</div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid #eee"><span>Sal mineral <span style="color:var(--danger);font-weight:700">· 28/11</span></span><b>R$ 1.840</b></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid #eee"><span>Vacina aftosa · 02/12</span><b>R$ 960</b></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0"><span>Arrendamento · 05/12</span><b>R$ 1.480</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= P4 · CUSTOS ======================= -->
+<section class="panel" id="p4">
+  <div class="blob"></div>
+  <div class="phone a"><div class="notch"></div><div class="scr" style="background:#1b1a22">
+    <div style="position:absolute;inset:0;background:linear-gradient(160deg,#6b6a5c,#2f2e28)"></div>
+    <div style="position:absolute;left:34px;right:34px;top:120px;background:#fbfaf4;border-radius:4px;padding:20px 18px 40px;transform:rotate(-3deg);box-shadow:0 20px 30px rgba(0,0,0,.4);font-family:'Courier New',monospace;color:#333">
+      <div style="text-align:center;font-weight:700;font-size:14px">AGROPECUÁRIA<br>SÃO JOSÉ</div>
+      <div style="text-align:center;font-size:10px;margin:6px 0 14px">Ponte Nova · MG</div>
+      <div style="font-size:11px;display:flex;justify-content:space-between"><span>SAL MINERAL 30KG</span><span>x20</span></div>
+      <div class="rl" style="height:6px;background:#dedad0;border-radius:3px;margin:9px 0"></div>
+      <div class="rl" style="height:6px;background:#dedad0;border-radius:3px;margin:9px 0;width:70%"></div>
+      <div class="rl" style="height:6px;background:#dedad0;border-radius:3px;margin:9px 0;width:85%"></div>
+      <div style="border-top:1px dashed #999;margin-top:14px;padding-top:10px;font-size:13px;font-weight:700;display:flex;justify-content:space-between"><span>TOTAL</span><span>1.840,00</span></div>
+    </div>
+    <div style="position:absolute;inset:90px 22px 150px;border:3px solid rgba(255,255,255,.85);border-radius:20px"></div>
+    <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);width:74px;height:74px;border-radius:50%;border:5px solid #fff;display:grid;place-items:center"><div style="width:56px;height:56px;border-radius:50%;background:#fff"></div></div>
+    <div style="position:absolute;top:52px;left:0;right:0;text-align:center;color:#fff;font-size:14px;font-weight:600">Fotografe a nota</div>
+  </div></div>
+  <div class="phone b"><div class="notch"></div><div class="scr">
+    <div class="app-top"><div><div class="p">Custos</div><div class="t">Nova compra</div></div></div>
+    <div style="display:flex;gap:12px;align-items:center;margin:14px 16px">
+      <div style="width:64px;height:78px;border-radius:8px;background:#fbfaf4;border:1px solid var(--line);padding:8px">
+        <div style="height:5px;background:#d9d6cd;margin:3px 0;border-radius:2px"></div><div style="height:5px;background:#d9d6cd;margin:6px 0;border-radius:2px;width:70%"></div><div style="height:5px;background:#d9d6cd;margin:6px 0;border-radius:2px"></div><div style="height:5px;background:#d9d6cd;margin:6px 0;border-radius:2px;width:60%"></div>
+      </div>
+      <div style="font-size:12.5px;line-height:1.45"><b>Nota anexada</b><br><span style="color:var(--muted)">Visível durante todo o lançamento</span></div>
+    </div>
+    <div class="field"><label>FORNECEDOR</label><div>Agropecuária São José</div></div>
+    <div class="field"><label>CATEGORIA · sugerida pelo histórico</label><div class="sug">Suplementos <span class="chip st-ready" style="font-size:10.5px;padding:3px 8px">sugestão</span></div></div>
+    <div class="field"><label>LOTE</label><div>Garrotes 2024 · 32 cab.</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+      <div class="field" style="margin-right:5px"><label>VALOR</label><div>R$ 1.840,00</div></div>
+      <div class="field" style="margin-left:5px"><label>SITUAÇÃO</label><div style="color:var(--amber)">A pagar</div></div>
+    </div>
+    <div class="field"><label>REPETIR</label><div>Todo mês · próximo 28/12</div></div>
+    <div class="btn">Salvar custo</div>
+  </div></div>
+  <div class="copy">
+    <div class="eyebrow">Tela 2 · Custos e notas</div>
+    <h2>Fotografe a nota.<br>Lance o custo na hora.</h2>
+    <ul class="list">
+      <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span><span>Tire a <b>foto da nota de papel</b> pelo celular, no balcão da loja.</span></li>
+      <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span><span>Escolha o <b>lote</b> e a <b>categoria</b>. O sistema sugere pelo fornecedor.</span></li>
+      <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span><span>Programe os <b>gastos que se repetem</b> e veja a projeção do mês.</span></li>
+      <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span><span>Receba o <b>alerta antes do vencimento</b>.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ======================= P5 · MERCADO ======================= -->
+<section class="panel" id="p5">
+  <div class="glow"></div>
+  <div class="copy">
+    <div class="eyebrow">Tela 3 · Mercado e decisão de venda</div>
+    <h2>Venda na hora <em>certa</em>, não na hora da pressa.</h2>
+    <ul class="list">
+      <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span><span>Compare a <b>cotação do boi gordo</b> com o seu custo por arroba.</span></li>
+      <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span><span>Descubra o <b>preço mínimo</b> para não ter prejuízo.</span></li>
+      <li><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span><span><b>Simule</b> preço, peso e data antes de fechar com o frigorífico.</span></li>
+    </ul>
+  </div>
+  <div class="chart">
+    <div class="hd">
+      <div><h3>Boi gordo em MG × Garrotes 2024</h3><div class="sub">R$ por arroba · últimos 12 meses</div></div>
+      <div class="legend"><span><i style="background:var(--sand)"></i>Cotação</span><span><i style="background:var(--green)"></i>Ponto de equilíbrio</span></div>
+    </div>
+    <svg id="line" width="760" height="360" style="margin-top:6px"></svg>
+  </div>
+  <div class="sim">
+    <div class="card">
+      <div class="l">Simulação</div>
+      <div class="s" style="margin-top:10px"><b>32 cabeças</b> · 18 @ cada<br>a <b>R$ 318,00</b> por arroba</div>
+      <div class="slider"><div class="tr"><b></b><i></i></div><div class="row"><span>R$ 280</span><span>preço da @</span><span>R$ 330</span></div></div>
+    </div>
+    <div class="card"><div class="l">Folga por @</div><div class="v" style="color:var(--green-dark)">+R$ 62,26</div><div class="s">acima do ponto de equilíbrio</div></div>
+    <div class="card hl"><div class="l">Lucro estimado</div><div class="v">R$ 35.860</div><div class="s">margem líquida de 19,6%</div></div>
+  </div>
+</section>
+
+<!-- ======================= P7 · INVESTIMENTO × RETORNO ======================= -->
+<section class="panel" id="p7">
+  <div class="copy">
+    <div class="eyebrow">Custo do investimento</div>
+    <h2>Cada gasto entra na conta.<br><span>E volta na hora da venda.</span></h2>
+    <p class="lead">Lance a ração, o remédio, o aluguel do pasto e tudo o que o lote consome. Descubra quanto investiu em cada animal e quanto ele devolveu quando foi vendido.</p>
+  </div>
+  <div class="card cats">
+    <div class="hd"><b>Garrotes 2024 · para onde foi o dinheiro</b><span>por animal · 32 cabeças</span></div>
+    <div id="catrows"></div>
+    <div class="row tot"><div class="nm">Investido por animal<small>R$ 141.760 no lote · R$ 246,11 por arroba</small></div><div class="val" style="font-size:22px">R$ 4.430</div></div>
+  </div>
+  <div class="roi">
+    <h3>Investimento × retorno</h3>
+    <div class="sub">Garrotes 2024 · valores por animal</div>
+    <div class="tog"><span class="on">Por animal</span><span>Por lote</span></div>
+    <div class="stage" id="stage"></div>
+    <div class="result">
+      <div><div class="l">Lucro por animal</div><div class="v">R$ 1.121</div></div>
+      <p><b>R$ 35.860</b> no lote<br>margem líquida de 19,6%</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= P6 · PASSOS ======================= -->
+<section class="panel" id="p6">
+  <img class="mark" src="assets/cabeca-white.png" alt="">
+  <div class="head">
+    <div class="eyebrow">Do papel à decisão</div>
+    <h2>Troque o palpite por números<br>em três passos.</h2>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><h3>Registre</h3><p>Cadastre o rebanho e lance cada gasto (ração, remédio, aluguel de pasto) com a foto da nota.</p></div>
+    <div class="step"><div class="n">2</div><h3>Acompanhe</h3><p>Veja quanto já investiu em cada animal e lote, o custo por arroba e os vencimentos.</p></div>
+    <div class="step"><div class="n">3</div><h3>Decida</h3><p>Compare com a cotação, simule cenários e venda com a margem que você quer.</p></div>
+  </div>
+  <div class="foot">
+    <p>Feito para o celular, para quem está no campo.</p>
+    <div class="brand"><img class="h" src="assets/cabeca-white.png" alt="" style="height:34px"><img class="w" src="assets/marca-white.png" alt="" style="height:26px"></div>
+  </div>
+</section>
+
+<script>
+  // Painel visível: capa.html#p3 mostra só o painel 3; sem hash, mostra todos empilhados.
+  const id = location.hash.slice(1);
+  if (id) document.getElementById(id).classList.add('on'); else document.body.classList.add('all');
+
+  // Barras de custo mensal (P3)
+  const meses=['jun','jul','ago','set','out','nov'], vals=[9.8,10.4,13.9,10.1,11.5,12.43];
+  const bars=document.getElementById('bars'), barl=document.getElementById('barl');
+  vals.forEach((v,i)=>{const b=document.createElement('div');b.style.cssText=`flex:1;height:${v/14*100}%;border-radius:5px 5px 0 0;background:${i==5?'var(--green)':'#cbd9c9'}`;bars.appendChild(b);
+    const l=document.createElement('div');l.style.cssText='flex:1;text-align:center';l.textContent=meses[i];barl.appendChild(l);});
+
+  // Linha de cotação × ponto de equilíbrio (P5)
+  const svg=document.getElementById('line'), W=760,H=360, L=46,R=20,T=16,B=34;
+  const ms=['dez','jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov'];
+  const cot=[296,301,305,299,304,309,312,307,311,315,314,318], eq=255.74, y0=230,y1=330;
+  const X=i=>L+i*(W-L-R)/(ms.length-1), Y=v=>T+(y1-v)/(y1-y0)*(H-T-B);
+  let s='';
+  for(let v=240;v<=320;v+=20){s+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#ece7dc"/><text x="${L-10}" y="${Y(v)+4}" font-size="12" text-anchor="end" fill="#696878" font-family="Inter">${v}</text>`}
+  ms.forEach((m,i)=>s+=`<text x="${X(i)}" y="${H-10}" font-size="12" text-anchor="middle" fill="#696878" font-family="Inter">${m}</text>`);
+  const pts=cot.map((v,i)=>`${X(i)},${Y(v)}`).join(' ');
+  s+=`<polygon points="${X(0)},${Y(eq)} ${pts} ${X(11)},${Y(eq)}" fill="rgba(95,132,94,.14)"/>`;
+  s+=`<line x1="${L}" x2="${W-R}" y1="${Y(eq)}" y2="${Y(eq)}" stroke="#5f845e" stroke-width="3" stroke-dasharray="8 6"/>`;
+  s+=`<text x="${X(1)}" y="${Y(eq)+22}" font-size="13" font-weight="700" fill="#3f5f3f" font-family="Inter">Equilíbrio R$ 255,74</text>`;
+  s+=`<polyline points="${pts}" fill="none" stroke="#a7875b" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>`;
+  s+=`<text x="${X(5.6)}" y="${(Y(309)+Y(eq))/2+6}" font-size="15" font-weight="700" fill="#3f5f3f" font-family="Inter" text-anchor="middle">zona de lucro</text>`;
+  s+=`<circle cx="${X(11)}" cy="${Y(318)}" r="8" fill="#a7875b" stroke="#fff" stroke-width="3"/>`;
+  s+=`<rect x="${X(11)-150}" y="${Y(318)-52}" width="140" height="38" rx="10" fill="#030029"/><text x="${X(11)-80}" y="${Y(318)-27}" font-size="15" font-weight="700" fill="#fff" text-anchor="middle" font-family="Inter">Hoje R$ 318,00</text>`;
+  svg.innerHTML=s;
+  // Investimento x retorno (P7): custo por animal do lote Garrotes 2024 (soma R$ 4.430)
+  const cats=[
+    ['Compra dos animais','aquisição dos garrotes',2400,'#3f5f3f'],
+    ['Ração e suplementos','sal mineral, ração, silagem',880,'#a7875b'],
+    ['Locação de pasto','aluguel da área onde o gado fica',540,'#7d9c7c'],
+    ['Medicamentos e vacinas','vermífugo, aftosa, carrapaticida',310,'#c98a1b'],
+    ['Outros','frete, manutenção, mão de obra',300,'#9a98b0'],
+  ];
+  const fmt=v=>'R$ '+v.toLocaleString('pt-BR');
+  document.getElementById('catrows').innerHTML=cats.map(([n,e,v,c])=>
+    `<div class="row"><span class="dot" style="background:${c}"></span><div class="nm">${n}<small>${e}</small></div><div class="bar"><i style="width:${v/2400*100}%;background:${c}"></i></div><div class="val">${fmt(v)}<small>${Math.round(v/4430*100)}% do custo</small></div></div>`).join('');
+  const venda=5724, desp=173, sc=360/venda, st=document.getElementById('stage');
+  let h='', segs=[...cats.map(c=>[c[2],c[3]]),[desp,'#5b5970']].reverse();
+  h+=`<div class="col" style="left:20px">${segs.map(([v,c])=>`<div class="seg" style="height:${v*sc}px;background:${c}"></div>`).join('')}<div class="lab">Investido<small>custos + despesas de venda</small></div></div>`;
+  const custo=4430+desp;
+  h+=`<div class="col" style="left:280px"><div class="seg" style="height:${(venda-custo)*sc}px;background:#8fbf8d;border-radius:10px 10px 0 0"></div><div class="seg" style="height:${custo*sc}px;background:#f6f1e7"></div><div class="lab">Venda<small>18 @ a R$ 318,00</small></div></div>`;
+  h+=`<div class="tag" style="left:20px;bottom:${56+custo*sc+12}px">${fmt(4430)}<small>+ R$ 173 de frete e impostos</small></div>`;
+  h+=`<div class="tag" style="left:280px;bottom:${56+venda*sc+12}px">${fmt(venda)}<small>recebido por animal</small></div>`;
+  h+=`<div style="position:absolute;left:160px;width:120px;bottom:${56+custo*sc}px;border-top:2px dashed #6f6c96"></div>`;
+  h+=`<div class="tag" style="left:436px;bottom:${56+custo*sc+((venda-custo)*sc)/2-18}px;color:#8fbf8d;font-size:26px">+R$ 1.121<small style="color:#8fbf8d">lucro</small></div>`;
+  st.innerHTML=h;
+</script>
+</body>
+</html>
