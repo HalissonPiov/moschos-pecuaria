@@ -46,9 +46,9 @@ Com os gastos somados, o sistema mostra quanto custou cada animal e cada lote, q
   <img src="docs/marketing/img/07-passos.png" alt="Três passos: registre, acompanhe e decida." width="100%">
 </p>
 
-> As telas acima são ilustrações com dados de exemplo, feitas a partir do protótipo e da identidade visual do sistema. As fontes das artes ficam em [docs/marketing](docs/marketing) e são exportadas por `docs/marketing/render.sh`.
+> As telas acima são ilustrações com dados de exemplo
 
-## Sobre o projeto
+## Sobre o projeto (⚠️**Está em DESENVOLVIMENTO**⚠️)
 
 | | |
 | --- | --- |
@@ -57,10 +57,12 @@ Com os gastos somados, o sistema mostra quanto custou cada animal e cada lote, q
 | O que entra na v1.0 | Acesso e propriedades com papéis e convites, rebanho por lote ou por cabeça, notas fiscais por foto e custos com categorias, recorrência e vencimentos, vendas com margens, cotação do boi gordo com simulação e painel de resumo. |
 | O que fica para depois | Cotação automática, leitura da nota por OCR, integração com NF-e, DDA e Open Finance, rateio de custos gerais e modo offline. |
 | Tecnologia | React, TypeScript e Vite no front-end; FastAPI, SQLAlchemy, Alembic e PostgreSQL no back-end; Docker e GitHub Actions. |
-| Situação | Em desenvolvimento. Acesso e propriedades estão prontos; o andamento fica em [docs/gestao/00-status-atual.md](docs/gestao/00-status-atual.md). |
-| Contexto | Trabalho da disciplina CSI606 Sistemas WEB I, de Hálisson Piovezana e Emerson Ataíde. |
+| Situação | Em desenvolvimento. O trabalho está sendo realizado gradualmente, dentro do escopo definido até o momento |
+| Contexto | Trabalho da disciplina CSI606 Sistemas WEB I, de Hálisson Piovezana |
 
-## Para quem desenvolve
+<br>
+
+## Para quem desenvolve (🚪️Forma de acessar apenas enquanto está em desenvolvimento)
 
 Leia docs/arquitetura.md para entender a estrutura e as decisões adotadas. Os requisitos de negócio estão no arquivo Documento-Requisitos-Moschos-Pecuaria.md, que é a fonte oficial do escopo. Decisões de arquitetura ficam registradas em docs/adr. O modelo relacional está em db/, com a validação em docs/db/modelo-de-dados.md. O escopo da entrega v1.0 e o cronograma estão em docs/gestao.
 
